@@ -203,8 +203,8 @@ fn extra_basic() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.3.0" },
-            { name = "sortedcontainers", marker = "extra == 'extra2'", specifier = "==2.4.0" },
+            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.3" },
+            { name = "sortedcontainers", marker = "extra == 'extra2'", specifier = "==2.4" },
         ]
         provides-extras = ["extra1", "extra2"]
 
@@ -377,9 +377,9 @@ fn extra_basic_three_extras() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.2.0" },
-            { name = "sortedcontainers", marker = "extra == 'extra2'", specifier = "==2.3.0" },
-            { name = "sortedcontainers", marker = "extra == 'project3'", specifier = "==2.4.0" },
+            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.2" },
+            { name = "sortedcontainers", marker = "extra == 'extra2'", specifier = "==2.3" },
+            { name = "sortedcontainers", marker = "extra == 'project3'", specifier = "==2.4" },
         ]
         provides-extras = ["extra1", "extra2", "project3"]
 
@@ -847,10 +847,10 @@ fn extra_multiple_independent() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "anyio", marker = "extra == 'project3'", specifier = "==4.1.0" },
-            { name = "anyio", marker = "extra == 'project4'", specifier = "==4.2.0" },
-            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.3.0" },
-            { name = "sortedcontainers", marker = "extra == 'extra2'", specifier = "==2.4.0" },
+            { name = "anyio", marker = "extra == 'project3'", specifier = "==4.1" },
+            { name = "anyio", marker = "extra == 'project4'", specifier = "==4.2" },
+            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.3" },
+            { name = "sortedcontainers", marker = "extra == 'extra2'", specifier = "==2.4" },
         ]
         provides-extras = ["extra1", "extra2", "project3", "project4"]
 
@@ -950,8 +950,8 @@ fn extra_config_change_ignore_lockfile() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.3.0" },
-            { name = "sortedcontainers", marker = "extra == 'extra2'", specifier = "==2.4.0" },
+            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.3" },
+            { name = "sortedcontainers", marker = "extra == 'extra2'", specifier = "==2.4" },
         ]
         provides-extras = ["extra1", "extra2"]
 
@@ -1772,8 +1772,8 @@ fn extra_depends_on_conflicting_extra_transitive() -> Result<()> {
         [package.metadata]
         requires-dist = [
             { name = "indirection", marker = "extra == 'foo'", editable = "indirection" },
-            { name = "sortedcontainers", marker = "extra == 'bar'", specifier = "==2.4.0" },
-            { name = "sortedcontainers", marker = "extra == 'foo'", specifier = "==2.3.0" },
+            { name = "sortedcontainers", marker = "extra == 'bar'", specifier = "==2.4" },
+            { name = "sortedcontainers", marker = "extra == 'foo'", specifier = "==2.3" },
         ]
         provides-extras = ["foo", "bar"]
 
@@ -2601,11 +2601,11 @@ fn mixed() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.4.0" }]
+        requires-dist = [{ name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.4" }]
         provides-extras = ["extra1"]
 
         [package.metadata.requires-dev]
-        group1 = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
+        group1 = [{ name = "sortedcontainers", specifier = "==2.3" }]
 
         [[package]]
         name = "sortedcontainers"
@@ -7180,8 +7180,8 @@ fn extra_inferences() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "apache-airflow", marker = "extra == 'x1'", specifier = "==2.5.0" },
-            { name = "apache-airflow", marker = "extra == 'x2'", specifier = "==2.6.0" },
+            { name = "apache-airflow", marker = "extra == 'x1'", specifier = "==2.5" },
+            { name = "apache-airflow", marker = "extra == 'x2'", specifier = "==2.6" },
             { name = "quickpath-airflow-operator", specifier = "==1.0.2" },
         ]
         provides-extras = ["x1", "x2"]
@@ -7919,8 +7919,8 @@ fn deduplicate_resolution_markers() -> Result<()> {
         requires-dist = [
             { name = "idna", marker = "sys_platform == 'linux' and extra == 'x1'", specifier = "==3.6" },
             { name = "idna", marker = "sys_platform != 'linux' and extra == 'x1'", specifier = "==3.5" },
-            { name = "markupsafe", marker = "sys_platform == 'linux' and extra == 'x2'", specifier = "==2.1.0" },
-            { name = "markupsafe", marker = "sys_platform != 'linux' and extra == 'x2'", specifier = "==2.0.0" },
+            { name = "markupsafe", marker = "sys_platform == 'linux' and extra == 'x2'", specifier = "==2.1" },
+            { name = "markupsafe", marker = "sys_platform != 'linux' and extra == 'x2'", specifier = "==2" },
         ]
         provides-extras = ["x1", "x2"]
         "#
@@ -9429,9 +9429,9 @@ fn conditional_sources_keep_default_platform_specific_transitive_dependencies() 
 
         [package.metadata]
         requires-dist = [
-            { name = "torch", specifier = ">=2.6.0,<2.7.0" },
-            { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.6.0,<2.7.0", index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu", conflict = { package = "test-torch", extra = "cpu" } },
-            { name = "torch", marker = "extra == 'cu124'", specifier = ">=2.6.0,<2.7.0" },
+            { name = "torch", specifier = ">=2.6,<2.7" },
+            { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.6,<2.7", index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu", conflict = { package = "test-torch", extra = "cpu" } },
+            { name = "torch", marker = "extra == 'cu124'", specifier = ">=2.6,<2.7" },
         ]
         provides-extras = ["cpu", "cu124"]
 
@@ -9895,8 +9895,8 @@ fn avoids_exponential_lock_file_growth() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.6.0", index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu", conflict = { package = "resolution-markers-for-days", extra = "cpu" } },
-            { name = "torch", marker = "extra == 'cu124'", specifier = ">=2.6.0", index = "https://astral-sh.github.io/pytorch-mirror/whl/cu124", conflict = { package = "resolution-markers-for-days", extra = "cu124" } },
+            { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.6", index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu", conflict = { package = "resolution-markers-for-days", extra = "cpu" } },
+            { name = "torch", marker = "extra == 'cu124'", specifier = ">=2.6", index = "https://astral-sh.github.io/pytorch-mirror/whl/cu124", conflict = { package = "resolution-markers-for-days", extra = "cu124" } },
         ]
         provides-extras = ["cpu", "cu124"]
 
@@ -10307,8 +10307,8 @@ fn avoids_exponential_lock_file_growth() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.6.0", index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu", conflict = { package = "resolution-markers-for-days", extra = "cpu" } },
-            { name = "torch", marker = "extra == 'cu124'", specifier = ">=2.6.0", index = "https://astral-sh.github.io/pytorch-mirror/whl/cu124", conflict = { package = "resolution-markers-for-days", extra = "cu124" } },
+            { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.6", index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu", conflict = { package = "resolution-markers-for-days", extra = "cpu" } },
+            { name = "torch", marker = "extra == 'cu124'", specifier = ">=2.6", index = "https://astral-sh.github.io/pytorch-mirror/whl/cu124", conflict = { package = "resolution-markers-for-days", extra = "cu124" } },
         ]
         provides-extras = ["cpu", "cu124"]
 
@@ -10526,9 +10526,9 @@ fn do_not_simplify_if_not_all_conflict_extras_satisfy_the_marker_by_themselves()
 
         [package.metadata]
         requires-dist = [
-            { name = "python-dateutil", marker = "platform_machine == 'inapplicable' and extra == 'b'", specifier = "==2.8.0" },
+            { name = "python-dateutil", marker = "platform_machine == 'inapplicable' and extra == 'b'", specifier = "==2.8" },
             { name = "python-dateutil", marker = "platform_machine != 'inapplicable' and extra == 'b'", specifier = "==2.8.1" },
-            { name = "python-dateutil", marker = "extra == 'a'", specifier = "==2.8.0" },
+            { name = "python-dateutil", marker = "extra == 'a'", specifier = "==2.8" },
         ]
         provides-extras = ["a", "b"]
 
@@ -10765,7 +10765,7 @@ fn many_pairwise_conflicts_shared_extra() -> Result<()> {
             { name = "sortedcontainers", marker = "extra == 'c'", specifier = ">=2.4" },
             { name = "sortedcontainers", marker = "extra == 'd'", specifier = ">=2.4" },
             { name = "sortedcontainers", marker = "extra == 'e'", specifier = ">=2.4" },
-            { name = "sortedcontainers", marker = "extra == 'pinned'", specifier = "==2.3.0" },
+            { name = "sortedcontainers", marker = "extra == 'pinned'", specifier = "==2.3" },
         ]
         provides-extras = ["pinned", "a", "b", "c", "d", "e"]
 
@@ -10901,7 +10901,7 @@ fn project_level_conflict_with_extra() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3" }]
 
         [[package]]
         name = "pkg-b"
@@ -10914,7 +10914,7 @@ fn project_level_conflict_with_extra() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.4.0" }]
+        requires-dist = [{ name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.4" }]
         provides-extras = ["extra1"]
 
         [[package]]
@@ -11103,11 +11103,10 @@ fn project_level_conflict_with_extras_and_cross_dependency() -> Result<()> {
         [package.metadata]
         requires-dist = [
             { name = "idna", marker = "extra == 'foo'", specifier = "==3.4" },
-            { name = "pkg-a", extras = ["bar"], marker = "extra == 'all'" },
-            { name = "pkg-a", extras = ["foo"], marker = "extra == 'all'" },
+            { name = "pkg-a", extras = ["bar", "foo"], marker = "extra == 'all'" },
             { name = "pkg-b", extras = ["safe"], editable = "pkg-b" },
-            { name = "sniffio", marker = "extra == 'bar'", specifier = "==1.3.0" },
-            { name = "sortedcontainers", specifier = "==2.3.0" },
+            { name = "sniffio", marker = "extra == 'bar'", specifier = "==1.3" },
+            { name = "sortedcontainers", specifier = "==2.3" },
         ]
         provides-extras = ["all", "foo", "bar"]
 
@@ -11127,7 +11126,7 @@ fn project_level_conflict_with_extras_and_cross_dependency() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.4.0" },
+            { name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.4" },
             { name = "sortedcontainers", marker = "extra == 'safe'" },
         ]
         provides-extras = ["safe", "extra1"]
@@ -11296,10 +11295,10 @@ fn project_level_conflict_with_group() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3" }]
 
         [package.metadata.requires-dev]
-        dev = [{ name = "sniffio", specifier = "==1.3.0" }]
+        dev = [{ name = "sniffio", specifier = "==1.3" }]
 
         [[package]]
         name = "pkg-b"
@@ -11312,7 +11311,7 @@ fn project_level_conflict_with_group() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.4.0" }]
+        requires-dist = [{ name = "sortedcontainers", marker = "extra == 'extra1'", specifier = "==2.4" }]
         provides-extras = ["extra1"]
 
         [[package]]

@@ -57,7 +57,7 @@ fn packse_add_remove_one_package() {
          [package.metadata]
          requires-dist = [
              { name = "chevron-blue", specifier = ">=0.2.1" },
-             { name = "hatchling", specifier = ">=1.20.0" },
+             { name = "hatchling", specifier = ">=1.20" },
              { name = "msgspec", specifier = ">=0.18.4" },
              { name = "packse", extras = ["index"], marker = "extra == 'serve'" },
              { name = "pypiserver", marker = "extra == 'index'", specifier = ">=2.0.1" },
@@ -65,7 +65,7 @@ fn packse_add_remove_one_package() {
              { name = "setuptools", specifier = ">=69.1.1" },
              { name = "twine", specifier = ">=4.0.2" },
         +    { name = "tzdata", specifier = ">=2024.1" },
-             { name = "watchfiles", marker = "extra == 'serve'", specifier = ">=0.21.0" },
+             { name = "watchfiles", marker = "extra == 'serve'", specifier = ">=0.21" },
          ]
          provides-extras = ["index", "serve"]
 
@@ -73,7 +73,7 @@ fn packse_add_remove_one_package() {
          dev = [
              { name = "psutil", specifier = ">=5.9.7" },
              { name = "pytest", specifier = ">=7.4.3" },
-             { name = "syrupy", specifier = ">=4.6.0" },
+             { name = "syrupy", specifier = ">=4.6" },
          ]
         @@ -601,20 +603,29 @@
              { name = "rfc3986" },
@@ -145,7 +145,7 @@ fn packse_add_remove_one_package() {
          [package.metadata]
          requires-dist = [
              { name = "chevron-blue", specifier = ">=0.2.1" },
-             { name = "hatchling", specifier = ">=1.20.0" },
+             { name = "hatchling", specifier = ">=1.20" },
              { name = "msgspec", specifier = ">=0.18.4" },
              { name = "packse", extras = ["index"], marker = "extra == 'serve'" },
              { name = "pypiserver", marker = "extra == 'index'", specifier = ">=2.0.1" },
@@ -153,7 +153,7 @@ fn packse_add_remove_one_package() {
              { name = "setuptools", specifier = ">=69.1.1" },
              { name = "twine", specifier = ">=4.0.2" },
         -    { name = "tzdata", specifier = ">=2024.1" },
-             { name = "watchfiles", marker = "extra == 'serve'", specifier = ">=0.21.0" },
+             { name = "watchfiles", marker = "extra == 'serve'", specifier = ">=0.21" },
          ]
          provides-extras = ["index", "serve"]
 
@@ -161,7 +161,7 @@ fn packse_add_remove_one_package() {
          dev = [
              { name = "psutil", specifier = ">=5.9.7" },
              { name = "pytest", specifier = ">=7.4.3" },
-             { name = "syrupy", specifier = ">=4.6.0" },
+             { name = "syrupy", specifier = ">=4.6" },
          ]
         @@ -600,29 +598,20 @@
              { name = "readme-renderer" },
@@ -296,7 +296,7 @@ fn packse_promote_transitive_to_direct_then_remove() {
          [package.metadata]
          requires-dist = [
              { name = "chevron-blue", specifier = ">=0.2.1" },
-             { name = "hatchling", specifier = ">=1.20.0" },
+             { name = "hatchling", specifier = ">=1.20" },
              { name = "msgspec", specifier = ">=0.18.4" },
              { name = "packse", extras = ["index"], marker = "extra == 'serve'" },
              { name = "pypiserver", marker = "extra == 'index'", specifier = ">=2.0.1" },
@@ -304,7 +304,7 @@ fn packse_promote_transitive_to_direct_then_remove() {
              { name = "setuptools", specifier = ">=69.1.1" },
         +    { name = "sniffio", specifier = ">=1.3.1" },
              { name = "twine", specifier = ">=4.0.2" },
-             { name = "watchfiles", marker = "extra == 'serve'", specifier = ">=0.21.0" },
+             { name = "watchfiles", marker = "extra == 'serve'", specifier = ">=0.21" },
          ]
          provides-extras = ["index", "serve"]
 
@@ -312,7 +312,7 @@ fn packse_promote_transitive_to_direct_then_remove() {
          dev = [
              { name = "psutil", specifier = ">=5.9.7" },
              { name = "pytest", specifier = ">=7.4.3" },
-             { name = "syrupy", specifier = ">=4.6.0" },
+             { name = "syrupy", specifier = ">=4.6" },
         "#);
     });
 
@@ -354,7 +354,7 @@ fn packse_promote_transitive_to_direct_then_remove() {
          [package.metadata]
          requires-dist = [
              { name = "chevron-blue", specifier = ">=0.2.1" },
-             { name = "hatchling", specifier = ">=1.20.0" },
+             { name = "hatchling", specifier = ">=1.20" },
              { name = "msgspec", specifier = ">=0.18.4" },
              { name = "packse", extras = ["index"], marker = "extra == 'serve'" },
              { name = "pypiserver", marker = "extra == 'index'", specifier = ">=2.0.1" },
@@ -362,7 +362,7 @@ fn packse_promote_transitive_to_direct_then_remove() {
              { name = "setuptools", specifier = ">=69.1.1" },
         -    { name = "sniffio", specifier = ">=1.3.1" },
              { name = "twine", specifier = ">=4.0.2" },
-             { name = "watchfiles", marker = "extra == 'serve'", specifier = ">=0.21.0" },
+             { name = "watchfiles", marker = "extra == 'serve'", specifier = ">=0.21" },
          ]
          provides-extras = ["index", "serve"]
 
@@ -370,7 +370,7 @@ fn packse_promote_transitive_to_direct_then_remove() {
          dev = [
              { name = "psutil", specifier = ">=5.9.7" },
              { name = "pytest", specifier = ">=7.4.3" },
-             { name = "syrupy", specifier = ">=4.6.0" },
+             { name = "syrupy", specifier = ">=4.6" },
         "#);
     });
 

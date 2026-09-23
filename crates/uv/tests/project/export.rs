@@ -816,8 +816,8 @@ fn requirements_txt_dependency_conflicting_markers() -> Result<()> {
 
             [package.metadata]
             requires-dist = [
-                { name = "trio", marker = "sys_platform == 'darwin'", specifier = "==0.25.0" },
-                { name = "trio", marker = "sys_platform == 'win32'", specifier = "==0.10.0" },
+                { name = "trio", marker = "sys_platform == 'darwin'", specifier = "==0.25" },
+                { name = "trio", marker = "sys_platform == 'win32'", specifier = "==0.10" },
             ]
 
             [[package]]
@@ -2077,8 +2077,8 @@ fn requirements_txt_non_project_fork() -> Result<()> {
 
             [package.metadata]
             requires-dist = [
-                { name = "anyio", marker = "sys_platform == 'linux'", specifier = "==3.0.0" },
-                { name = "anyio", marker = "sys_platform == 'win32'", specifier = "==2.0.0" },
+                { name = "anyio", marker = "sys_platform == 'linux'", specifier = "==3" },
+                { name = "anyio", marker = "sys_platform == 'win32'", specifier = "==2" },
             ]
 
             [[package]]
@@ -3201,8 +3201,8 @@ fn requirements_txt_script() -> Result<()> {
 
         [manifest]
         requirements = [
-            { name = "anyio", marker = "sys_platform == 'linux'", specifier = "==3.0.0" },
-            { name = "anyio", marker = "sys_platform == 'win32'", specifier = "==2.0.0" },
+            { name = "anyio", marker = "sys_platform == 'linux'", specifier = "==3" },
+            { name = "anyio", marker = "sys_platform == 'win32'", specifier = "==2" },
         ]
 
         [[package]]
@@ -3319,8 +3319,8 @@ fn requirements_txt_script() -> Result<()> {
 
         [manifest]
         requirements = [
-            { name = "anyio", marker = "sys_platform == 'linux'", specifier = "==3.0.0" },
-            { name = "anyio", marker = "sys_platform == 'win32'", specifier = "==2.0.0" },
+            { name = "anyio", marker = "sys_platform == 'linux'", specifier = "==3" },
+            { name = "anyio", marker = "sys_platform == 'win32'", specifier = "==2" },
             { name = "iniconfig" },
         ]
 

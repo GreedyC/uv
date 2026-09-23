@@ -1,4 +1,4 @@
-//! Normalize tool inputs for resolution and receipt comparison.
+//! Normalize dependency declarations for resolution and semantic comparison.
 //!
 //! Each collection retains the declarations that affect its behavior: false overrides suppress
 //! dependencies, standalone pins permit yanked versions, and build hashes restrict allowed artifacts.
@@ -9,7 +9,6 @@ use std::mem;
 use std::ops::Deref;
 
 use indexmap::IndexMap;
-use uv_configuration::{ExcludeDependency, Excludes};
 use uv_distribution_types::{NameRequirementSpecification, Requirement, RequirementSource};
 use uv_pep440::{
     Operator, Version, VersionSpecifier, VersionSpecifiers, canonicalize_version_ranges,
@@ -17,26 +16,21 @@ use uv_pep440::{
 use uv_pep508::MarkerTree;
 use version_ranges::Ranges;
 
-/// Tool requirements, with the target package first and equivalent declarations combined.
-///
-/// False markers remain because overrides can replace them before resolution.
+use crate::{ExcludeDependency, Excludes, Override, PackageOverride, PackageOverrideTarget};
+
+/// Requirements with equivalent declarations combined, including false markers that overrides can replace.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct NormalizedRequirements(RequirementSet);
 
 impl NormalizedRequirements {
-    pub(crate) fn into_inner(self) -> Vec<Requirement> {
+    pub fn into_inner(self) -> Vec<Requirement> {
         self.0.0
     }
 }
 
 impl From<Vec<Requirement>> for NormalizedRequirements {
-    /// Normalize requirements while keeping the first input's package first.
     fn from(requirements: Vec<Requirement>) -> Self {
-        let target_name = requirements.first().map(|target| target.name.clone());
-        let mut normalized = normalize(requirements);
-        // A stable sort moves the target first while retaining the order of other requirements.
-        normalized.sort_by_key(|requirement| Some(&requirement.name) != target_name.as_ref());
-        Self(RequirementSet(normalized))
+        Self(RequirementSet(normalize(requirements)))
     }
 }
 
@@ -87,7 +81,7 @@ impl Deref for NormalizedConstraints {
 pub struct NormalizedOverrides(RequirementSet);
 
 impl NormalizedOverrides {
-    pub(crate) fn into_inner(self) -> Vec<Requirement> {
+    pub fn into_inner(self) -> Vec<Requirement> {
         self.0.0
     }
 }
@@ -107,6 +101,56 @@ impl Deref for NormalizedOverrides {
     }
 }
 
+/// Overrides normalized independently within their global or package-version scope.
+///
+/// Empty package scopes remain because they shadow versionless scopes.
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct NormalizedOverrideEntries {
+    global: NormalizedOverrides,
+    scoped: BTreeMap<PackageOverrideTarget, NormalizedOverrides>,
+}
+
+impl From<Vec<Override<Requirement>>> for NormalizedOverrideEntries {
+    fn from(entries: Vec<Override<Requirement>>) -> Self {
+        let mut global = Vec::new();
+        let mut scoped = BTreeMap::<PackageOverrideTarget, Vec<Requirement>>::new();
+        for entry in entries {
+            match entry {
+                Override::Requirement(requirement) => global.push(requirement),
+                Override::Package(package) => {
+                    scoped
+                        .entry(package.package)
+                        .or_default()
+                        .extend(package.dependencies);
+                }
+            }
+        }
+        Self {
+            global: NormalizedOverrides::from(global),
+            scoped: scoped
+                .into_iter()
+                .map(|(package, requirements)| (package, NormalizedOverrides::from(requirements)))
+                .collect(),
+        }
+    }
+}
+
+impl NormalizedOverrideEntries {
+    pub fn into_inner(self) -> Vec<Override<Requirement>> {
+        self.global
+            .into_inner()
+            .into_iter()
+            .map(Override::Requirement)
+            .chain(self.scoped.into_iter().map(|(package, dependencies)| {
+                Override::Package(PackageOverride {
+                    package,
+                    dependencies: dependencies.into_inner().into_boxed_slice(),
+                })
+            }))
+            .collect()
+    }
+}
+
 /// Exclusions sorted and deduplicated within each package and version scope.
 ///
 /// Empty version-specific scopes remain because they shadow versionless exclusions.
@@ -114,7 +158,7 @@ impl Deref for NormalizedOverrides {
 pub struct NormalizedExcludes(Vec<ExcludeDependency>);
 
 impl NormalizedExcludes {
-    pub(crate) fn into_inner(self) -> Vec<ExcludeDependency> {
+    pub fn into_inner(self) -> Vec<ExcludeDependency> {
         self.0
     }
 }
@@ -139,7 +183,7 @@ impl Deref for NormalizedExcludes {
 pub struct NormalizedBuildConstraints(Vec<NameRequirementSpecification>);
 
 impl NormalizedBuildConstraints {
-    pub(crate) fn into_inner(self) -> Vec<NameRequirementSpecification> {
+    pub fn into_inner(self) -> Vec<NameRequirementSpecification> {
         self.0
     }
 }
@@ -264,7 +308,7 @@ impl RequirementsKey {
 ///
 /// Extras are unioned and version constraints intersected wherever markers overlap.
 /// Standalone pins stay separate because they permit yanked versions.
-/// False declarations remain for requirements and overrides; constraints discard them before normalization.
+/// False requirements and overrides remain because overrides can replace their markers.
 fn normalize(requirements: Vec<Requirement>) -> Vec<Requirement> {
     let mut sources = BTreeMap::<Requirement, Vec<Requirement>>::new();
     for mut requirement in requirements {
@@ -275,7 +319,12 @@ fn normalize(requirements: Vec<Requirement>) -> Vec<Requirement> {
         requirement.groups.sort();
         let mut key = requirement.clone();
         key.extras = Box::new([]);
-        key.marker = MarkerTree::TRUE;
+        // Overrides retain a dependency's top-level extra condition. Combining different extra
+        // markers can change that condition, so only merge declarations with identical markers
+        // when they mention extras.
+        if key.marker.without_extras() == key.marker {
+            key.marker = MarkerTree::TRUE;
+        }
         if let RequirementSource::Registry { specifier, .. } = &mut key.source
             && !allows_yanked(specifier.iter())
         {
@@ -476,11 +525,12 @@ mod tests {
 
     use anyhow::Result;
     use insta::assert_snapshot;
-    use uv_configuration::{ExcludeDependency, Excludes};
     use uv_distribution_types::{Requirement, RequirementSource};
     use uv_pep440::{Version, VersionSpecifiers};
     use uv_pep508::{MarkerTree, Requirement as Pep508Requirement};
     use uv_pypi_types::VerbatimParsedUrl;
+
+    use crate::{ExcludeDependency, Excludes, Overrides};
 
     use super::{
         NormalizedExcludes, NormalizedRequirements, allows_prereleases, allows_yanked,
@@ -496,6 +546,23 @@ mod tests {
                 ))
             })
             .collect()
+    }
+
+    /// Optional dependencies must retain the extra condition applied to their overrides.
+    #[test]
+    fn overridden_optional_requirements() -> Result<()> {
+        let original = requirements(&["a; extra == 'x'", "a; extra == 'y'"])?;
+        let normalized = NormalizedRequirements::from(original.clone());
+        let overrides = Overrides::from_requirements(requirements(&["a>=2"])?);
+        let overridden = |requirements: &[Requirement]| {
+            overrides
+                .apply(requirements)
+                .fold(MarkerTree::FALSE, |marker, requirement| {
+                    marker.or(requirement.marker)
+                })
+        };
+        assert_eq!(overridden(&original), overridden(&normalized));
+        Ok(())
     }
 
     #[test]
@@ -565,13 +632,13 @@ mod tests {
         ])?;
         let normalized = NormalizedRequirements::from(original.clone());
         assert_snapshot!(normalized.iter().map(ToString::to_string).collect::<Vec<_>>().join("\n"), @"
-        z-tool
         a
         b @ https://example.org/b.whl#sha256=1111
         b @ https://example.org/b.whl#sha256=2222
+        z-tool
         ");
         let mut reordered = original;
-        reordered[1..].reverse();
+        reordered.reverse();
         assert_eq!(normalized, NormalizedRequirements::from(reordered));
         assert_eq!(
             normalized,
@@ -780,7 +847,7 @@ mod tests {
             ))
         );
         let mut reordered = original.clone();
-        reordered[1..].reverse();
+        reordered.reverse();
         assert_eq!(
             display(&normalized),
             display(&NormalizedRequirements::from(reordered))

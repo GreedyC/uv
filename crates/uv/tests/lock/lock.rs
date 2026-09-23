@@ -174,6 +174,282 @@ fn lock_preserves_noncanonical_lock() -> Result<()> {
     Ok(())
 }
 
+/// Equivalent dependency declarations should reuse metadata already stored in a lockfile.
+#[cfg(feature = "test-universal")]
+#[test]
+fn lock_equivalent_requirements() -> Result<()> {
+    let context = uv_test::test_context!("3.12");
+    let links = context.workspace_root.join("test/links");
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["ok>=1.0", "ok>=2", "ok<3", "ok<4"]
+
+        [dependency-groups]
+        dev = ["ok>=1", "ok<3", "ok<4"]
+    "#})?;
+    uv_snapshot!(context.filters(), context.lock().arg("--no-index").arg("--find-links").arg(&links), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    ");
+    let locked = context.read("uv.lock");
+
+    pyproject_toml.write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["ok>=2.0.0,<3"]
+
+        [dependency-groups]
+        dev = ["ok>=1,<3.0.0"]
+    "#})?;
+    uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline").arg("--no-index").arg("--find-links").arg(&links), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    ");
+    assert_eq!(context.read("uv.lock"), locked);
+
+    // Tightening a bound must still invalidate the lock, even if the selected version satisfies it.
+    pyproject_toml.write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+        dependencies = ["ok>=2,<2.5"]
+
+        [dependency-groups]
+        dev = ["ok>=1,<3"]
+    "#})?;
+    uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline").arg("--no-index").arg("--find-links").arg(&links), @"
+    exit_code: 1 (failure)
+    ----- stderr -----
+    Resolved 2 packages in [TIME]
+    error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided.
+
+    hint: To update the lockfile, run `uv lock`.
+    ");
+    Ok(())
+}
+
+/// Normalize each manifest input within its own scope and with its own candidate policies.
+#[cfg(feature = "test-universal")]
+#[test]
+fn lock_equivalent_manifest_inputs() -> Result<()> {
+    let context = uv_test::test_context!("3.12");
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+
+        [tool.uv]
+        constraint-dependencies = ["a>=1", "a>=2", "a<3", "b", "c; python_version < '0'"]
+        override-dependencies = [
+            "a>=1", "a>=2", "a<3", "b", "c; python_version < '0'",
+            { package = { name = "parent" }, dependencies = ["a>=1", "a>=2", "a<3"] },
+            { package = { name = "parent", version = "1" }, dependencies = [] },
+        ]
+        exclude-dependencies = [
+            "c", "c",
+            { package = { name = "parent" }, dependencies = ["b", "a"] },
+            { package = { name = "parent" }, dependencies = ["c"] },
+            { package = { name = "parent", version = "1" }, dependencies = [] },
+        ]
+        build-constraint-dependencies = ["a>=1", "a>=2", "a<3"]
+    "#})?;
+    uv_snapshot!(context.filters(), context.lock().arg("--offline"), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+    let locked = context.read("uv.lock");
+    assert_snapshot!(locked, @r#"
+    version = 1
+    revision = 3
+    requires-python = ">=3.12"
+
+    [options]
+    exclude-newer = "2024-03-25T00:00:00Z"
+
+    [manifest]
+    constraints = [{ name = "a", specifier = ">=2,<3" }]
+    overrides = [
+        { package = { name = "parent" }, dependencies = [{ name = "a", specifier = ">=2,<3" }] },
+        { package = { name = "parent", version = "1" }, dependencies = [] },
+        { name = "a", specifier = ">=2,<3" },
+        { name = "b" },
+        { name = "c", marker = "python_version < '0'" },
+    ]
+    excludes = [
+        { package = { name = "parent" }, dependencies = ["a", "b", "c"] },
+        { package = { name = "parent", version = "1" }, dependencies = [] },
+        "c",
+    ]
+    build-constraints = [{ name = "a", specifier = ">=2,<3" }]
+
+    [[package]]
+    name = "project"
+    version = "0.1.0"
+    source = { virtual = "." }
+    "#);
+
+    pyproject_toml.write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+
+        [tool.uv]
+        constraint-dependencies = ["a>=2.0,<3"]
+        override-dependencies = [
+            "a>=2,<3.0", "b", "c; python_version < '0'",
+            { package = { name = "parent" }, dependencies = ["a>=2,<3"] },
+            { package = { name = "parent", version = "1.0" }, dependencies = [] },
+        ]
+        exclude-dependencies = [
+            "c",
+            { package = { name = "parent" }, dependencies = ["a", "b", "c"] },
+            { package = { name = "parent", version = "1.0" }, dependencies = [] },
+        ]
+        build-constraint-dependencies = ["a>=2.0,<3"]
+    "#})?;
+    uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline"), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+    assert_eq!(context.read("uv.lock"), locked);
+    // Older locks can contain the original, unnormalized declarations.
+    let legacy_lock = indoc! {r#"
+        version = 1
+        revision = 3
+        requires-python = ">=3.12"
+
+        [options]
+        exclude-newer = "2024-03-25T00:00:00Z"
+
+        [manifest]
+        constraints = [
+            { name = "a", specifier = "<3" },
+            { name = "a", specifier = ">=1" },
+            { name = "a", specifier = ">=2" },
+            { name = "b" },
+            { name = "c", marker = "python_version < '0'" },
+        ]
+        overrides = [
+            { package = { name = "parent" }, dependencies = [{ name = "a", specifier = ">=1" }, { name = "a", specifier = ">=2" }, { name = "a", specifier = "<3" }] },
+            { package = { name = "parent", version = "1" }, dependencies = [] },
+            { name = "a", specifier = "<3" },
+            { name = "a", specifier = ">=1" },
+            { name = "a", specifier = ">=2" },
+            { name = "b" },
+            { name = "c", marker = "python_version < '0'" },
+        ]
+        excludes = [
+            { package = { name = "parent" }, dependencies = ["b", "a"] },
+            { package = { name = "parent" }, dependencies = ["c"] },
+            { package = { name = "parent", version = "1" }, dependencies = [] },
+            "c",
+        ]
+        build-constraints = [
+            { name = "a", specifier = "<3" },
+            { name = "a", specifier = ">=1" },
+            { name = "a", specifier = ">=2" },
+        ]
+
+        [[package]]
+        name = "project"
+        version = "0.1.0"
+        source = { virtual = "." }
+    "#};
+    context.temp_dir.child("uv.lock").write_str(legacy_lock)?;
+    uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline"), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+    assert_eq!(context.read("uv.lock"), legacy_lock);
+    Ok(())
+}
+
+/// Build constraints retain order because later hashes for a version take precedence.
+#[cfg(feature = "test-universal")]
+#[test]
+fn lock_build_constraint_order() -> Result<()> {
+    let context = uv_test::test_context!("3.12");
+    let pyproject_toml = context.temp_dir.child("pyproject.toml");
+    pyproject_toml.write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+
+        [tool.uv]
+        build-constraint-dependencies = [
+            { requirement = "a==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
+            { requirement = "a==1", hashes = ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
+        ]
+    "#})?;
+    uv_snapshot!(context.filters(), context.lock().arg("--offline"), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+    assert_snapshot!(context.read("uv.lock"), @r#"
+    version = 1
+    revision = 3
+    requires-python = ">=3.12"
+
+    [options]
+    exclude-newer = "2024-03-25T00:00:00Z"
+
+    [manifest]
+    build-constraints = [
+        { name = "a", specifier = "==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
+        { name = "a", specifier = "==1", hashes = ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
+    ]
+
+    [[package]]
+    name = "project"
+    version = "0.1.0"
+    source = { virtual = "." }
+    "#);
+    uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline"), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
+    pyproject_toml.write_str(indoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+
+        [tool.uv]
+        build-constraint-dependencies = [
+            { requirement = "a==1", hashes = ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
+            { requirement = "a==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
+        ]
+    "#})?;
+    uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline"), @"
+    exit_code: 1 (failure)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided.
+
+    hint: To update the lockfile, run `uv lock`.
+    ");
+    Ok(())
+}
+
 #[cfg(feature = "test-universal")]
 #[test]
 fn lock_wheel_registry() -> Result<()> {
@@ -241,7 +517,7 @@ fn lock_wheel_registry() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "sniffio"
@@ -1400,16 +1676,16 @@ fn lock_wheel_url() -> Result<()> {
             { name = "anyio", extras = ["trio"], marker = "extra == 'test'" },
             { name = "coverage", extras = ["toml"], marker = "extra == 'test'", specifier = ">=7" },
             { name = "exceptiongroup", marker = "python_full_version < '3.11'", specifier = ">=1.0.2" },
-            { name = "exceptiongroup", marker = "extra == 'test'", specifier = ">=1.2.0" },
-            { name = "hypothesis", marker = "extra == 'test'", specifier = ">=4.0" },
+            { name = "exceptiongroup", marker = "extra == 'test'", specifier = ">=1.2" },
+            { name = "hypothesis", marker = "extra == 'test'", specifier = ">=4" },
             { name = "idna", specifier = ">=2.8" },
             { name = "packaging", marker = "extra == 'doc'" },
             { name = "psutil", marker = "extra == 'test'", specifier = ">=5.9" },
-            { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0" },
+            { name = "pytest", marker = "extra == 'test'", specifier = ">=7" },
             { name = "pytest-mock", marker = "extra == 'test'", specifier = ">=3.6.1" },
             { name = "sniffio", specifier = ">=1.1" },
             { name = "sphinx", marker = "extra == 'doc'", specifier = ">=7" },
-            { name = "sphinx-autodoc-typehints", marker = "extra == 'doc'", specifier = ">=1.2.0" },
+            { name = "sphinx-autodoc-typehints", marker = "extra == 'doc'", specifier = ">=1.2" },
             { name = "sphinx-rtd-theme", marker = "extra == 'doc'" },
             { name = "trio", marker = "extra == 'trio'", specifier = ">=0.23" },
             { name = "trustme", marker = "extra == 'test'" },
@@ -3323,7 +3599,7 @@ fn lock_project_extra() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "anyio", specifier = "==3.7.0" },
+            { name = "anyio", specifier = "==3.7" },
             { name = "iniconfig", marker = "extra == 'test'" },
         ]
         provides-extras = ["test"]
@@ -3502,7 +3778,7 @@ fn lock_project_with_scoped_overrides() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "sniffio"
@@ -4038,7 +4314,7 @@ fn lock_project_with_excludes() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "flask", specifier = "==3.0.0" }]
+        requires-dist = [{ name = "flask", specifier = "==3" }]
         "#
         );
     });
@@ -4646,7 +4922,7 @@ fn lock_conditional_dependency_extra() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "requests" },
+            { name = "requests", marker = "python_full_version >= '3.10'" },
             { name = "requests", extras = ["socks"], marker = "python_full_version < '3.10'" },
         ]
 
@@ -5044,10 +5320,10 @@ fn lock_conflicting_project_basic1() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3" }]
 
         [package.metadata.requires-dev]
-        foo = [{ name = "sortedcontainers", specifier = "==2.4.0" }]
+        foo = [{ name = "sortedcontainers", specifier = "==2.4" }]
 
         [[package]]
         name = "sortedcontainers"
@@ -5250,7 +5526,7 @@ fn lock_conflicting_workspace_members() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3" }]
 
         [[package]]
         name = "sortedcontainers"
@@ -5279,7 +5555,7 @@ fn lock_conflicting_workspace_members() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.4.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.4" }]
         "#
         );
     });
@@ -5503,7 +5779,7 @@ fn lock_conflicting_workspace_members_depends_direct_extra() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "sortedcontainers", specifier = "==2.3.0" },
+            { name = "sortedcontainers", specifier = "==2.3" },
             { name = "subexample", marker = "extra == 'foo'", editable = "subexample" },
         ]
         provides-extras = ["foo"]
@@ -5535,7 +5811,7 @@ fn lock_conflicting_workspace_members_depends_direct_extra() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.4.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.4" }]
         "#
         );
     });
@@ -5823,7 +6099,7 @@ fn lock_conflicting_workspace_members_depends_transitive_extra() -> Result<()> {
         [package.metadata]
         requires-dist = [
             { name = "indirection", extras = ["foo"], editable = "indirection" },
-            { name = "sortedcontainers", specifier = "==2.3.0" },
+            { name = "sortedcontainers", specifier = "==2.3" },
         ]
 
         [[package]]
@@ -5867,7 +6143,7 @@ fn lock_conflicting_workspace_members_depends_transitive_extra() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.4.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.4" }]
         "#
         );
     });
@@ -6027,10 +6303,10 @@ fn lock_conflicting_project_basic2() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = ">=4.2.0" }]
+        requires-dist = [{ name = "anyio", specifier = ">=4.2" }]
 
         [package.metadata.requires-dev]
-        foo = [{ name = "anyio", specifier = "<4.2.0" }]
+        foo = [{ name = "anyio", specifier = "<4.2" }]
 
         [[package]]
         name = "idna"
@@ -6204,11 +6480,11 @@ fn lock_conflicting_mixed() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", marker = "extra == 'project2'", specifier = "==2.4.0" }]
+        requires-dist = [{ name = "sortedcontainers", marker = "extra == 'project2'", specifier = "==2.4" }]
         provides-extras = ["project2"]
 
         [package.metadata.requires-dev]
-        project1 = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
+        project1 = [{ name = "sortedcontainers", specifier = "==2.3" }]
 
         [[package]]
         name = "sortedcontainers"
@@ -6530,7 +6806,7 @@ fn lock_upgrade_log_multi_version() -> Result<()> {
         [package.metadata]
         requires-dist = [
             { name = "markupsafe", marker = "sys_platform != 'win32'", specifier = "<2" },
-            { name = "markupsafe", marker = "sys_platform == 'win32'", specifier = "==2.0.0" },
+            { name = "markupsafe", marker = "sys_platform == 'win32'", specifier = "==2" },
         ]
         "#
         );
@@ -6758,8 +7034,8 @@ fn lock_check_refresh_workspace_conflicts() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "sortedcontainers", marker = "extra == 'non-prod'", specifier = "==2.4.0" },
-            { name = "sortedcontainers", marker = "extra == 'prod'", specifier = "==2.3.0" },
+            { name = "sortedcontainers", marker = "extra == 'non-prod'", specifier = "==2.4" },
+            { name = "sortedcontainers", marker = "extra == 'prod'", specifier = "==2.3" },
         ]
         provides-extras = ["prod", "non-prod"]
 
@@ -9705,12 +9981,9 @@ fn lock_python_version_marker_complement() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "attrs", marker = "python_full_version < '3.11'" },
-            { name = "attrs", marker = "python_full_version >= '3.11'" },
-            { name = "iniconfig", marker = "python_full_version < '3.10'" },
-            { name = "iniconfig", marker = "python_full_version >= '3.10'" },
-            { name = "typing-extensions", marker = "python_full_version <= '3.10'" },
-            { name = "typing-extensions", marker = "python_full_version > '3.10'" },
+            { name = "attrs" },
+            { name = "iniconfig" },
+            { name = "typing-extensions" },
         ]
 
         [[package]]
@@ -9900,10 +10173,7 @@ fn lock_conditional_unconditional() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [
-            { name = "iniconfig" },
-            { name = "iniconfig", marker = "python_full_version < '3.12'" },
-        ]
+        requires-dist = [{ name = "iniconfig" }]
         "#
         );
     });
@@ -9973,10 +10243,7 @@ fn lock_multiple_markers() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [
-            { name = "iniconfig", marker = "python_full_version < '3.12'" },
-            { name = "iniconfig", marker = "implementation_name == 'cpython'" },
-        ]
+        requires-dist = [{ name = "iniconfig", marker = "python_full_version < '3.12' or implementation_name == 'cpython'" }]
         "#
         );
     });
@@ -11244,7 +11511,7 @@ fn lock_constraint_dependency_absolute_path() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "sniffio"
@@ -11357,7 +11624,7 @@ fn lock_index_absolute_path_from_config() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "tqdm", specifier = "==1000.0.0" }]
+        requires-dist = [{ name = "tqdm", specifier = "==1000" }]
 
         [[package]]
         name = "tqdm"
@@ -11471,8 +11738,8 @@ fn lock_cycles() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "fixtures", specifier = "==3.0.0" },
-            { name = "testtools", specifier = "==2.3.0" },
+            { name = "fixtures", specifier = "==3" },
+            { name = "testtools", specifier = "==2.3" },
         ]
 
         [[package]]
@@ -11656,7 +11923,7 @@ fn lock_new_extras() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "requests", specifier = "==2.31.0" }]
+        requires-dist = [{ name = "requests", specifier = "==2.31" }]
 
         [[package]]
         name = "requests"
@@ -11777,7 +12044,7 @@ fn lock_new_extras() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "requests", extras = ["socks"], specifier = "==2.31.0" }]
+        requires-dist = [{ name = "requests", extras = ["socks"], specifier = "==2.31" }]
 
         [[package]]
         name = "pysocks"
@@ -13080,7 +13347,7 @@ fn lock_same_version_multiple_urls() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "dependency"
@@ -13094,7 +13361,7 @@ fn lock_same_version_multiple_urls() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.0.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3" }]
 
         [[package]]
         name = "idna"
@@ -13569,10 +13836,7 @@ fn lock_workspace_member_with_standalone_path_source() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [
-            { name = "lib", marker = "sys_platform != 'darwin'", editable = "root/lib" },
-            { name = "lib", marker = "sys_platform == 'darwin'", editable = "root/lib" },
-        ]
+        requires-dist = [{ name = "lib", editable = "root/lib" }]
 
         [[package]]
         name = "lib"
@@ -16282,7 +16546,7 @@ fn lock_find_links_local_wheel() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "tqdm", specifier = "==1000.0.0" }]
+        requires-dist = [{ name = "tqdm", specifier = "==1000" }]
 
         [[package]]
         name = "tqdm"
@@ -16615,7 +16879,7 @@ fn lock_find_links_local_sdist() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "tqdm", specifier = "==999.0.0" }]
+        requires-dist = [{ name = "tqdm", specifier = "==999" }]
 
         [[package]]
         name = "tqdm"
@@ -24208,7 +24472,7 @@ fn lock_missing_metadata() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "sniffio"
@@ -24689,10 +24953,7 @@ fn lock_narrowed_python_version() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [
-            { name = "dependency", marker = "python_full_version < '3.9'", directory = "dependency" },
-            { name = "dependency", marker = "python_full_version >= '3.11'", directory = "dependency" },
-        ]
+        requires-dist = [{ name = "dependency", marker = "python_full_version < '3.9' or python_full_version >= '3.11'", directory = "dependency" }]
         "#
         );
     });
@@ -24776,10 +25037,7 @@ fn lock_exclude_unnecessary_python_forks() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [
-            { name = "anyio", marker = "python_full_version >= '3.11'" },
-            { name = "anyio", marker = "sys_platform == 'darwin'" },
-        ]
+        requires-dist = [{ name = "anyio", marker = "python_full_version >= '3.11' or sys_platform == 'darwin'" }]
 
         [[package]]
         name = "idna"
@@ -25986,7 +26244,7 @@ fn lock_non_project_member_conflicts() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.3" }]
 
         [[package]]
         name = "member-b"
@@ -25997,7 +26255,7 @@ fn lock_non_project_member_conflicts() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "sortedcontainers", specifier = "==2.4.0" }]
+        requires-dist = [{ name = "sortedcontainers", specifier = "==2.4" }]
 
         [[package]]
         name = "sortedcontainers"
@@ -26671,7 +26929,7 @@ fn lock_trailing_slash_index_url() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "sniffio"
@@ -26845,8 +27103,8 @@ fn lock_explicit_index() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "anyio", specifier = "==3.7.0" },
-            { name = "iniconfig", specifier = "==2.0.0", index = "https://test.pypi.org/simple" },
+            { name = "anyio", specifier = "==3.7" },
+            { name = "iniconfig", specifier = "==2", index = "https://test.pypi.org/simple" },
         ]
 
         [[package]]
@@ -26927,7 +27185,7 @@ fn lock_explicit_default_index() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0", index = "https://test.pypi.org/simple" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2", index = "https://test.pypi.org/simple" }]
         "#
         );
     });
@@ -26965,7 +27223,7 @@ fn lock_explicit_default_index() -> Result<()> {
     DEBUG Found static `requires-dist` for: [TEMP_DIR]/
     DEBUG Resolving despite existing lockfile due to mismatched requirements for: `project==0.1.0`
       Requested: {Requirement { name: PackageName("anyio"), extras: [], groups: [], marker: true, source: Registry { specifier: VersionSpecifiers([]), index: None, conflict: None }, scope: Global, origin: None }}
-      Existing: {Requirement { name: PackageName("iniconfig"), extras: [], groups: [], marker: true, source: Registry { specifier: VersionSpecifiers([VersionSpecifier { operator: Equal, version: "2.0.0" }]), index: Some(IndexMetadata { url: Url(VerbatimUrl { url: DisplaySafeUrl { scheme: "https", cannot_be_a_base: false, username: "", password: None, host: Some(Domain("test.pypi.org")), port: None, path: "/simple", query: None, fragment: None }, given: None, expanded: false, force_relative: false }), format: Simple }), conflict: None }, scope: Global, origin: None }}
+      Existing: {Requirement { name: PackageName("iniconfig"), extras: [], groups: [], marker: true, source: Registry { specifier: VersionSpecifiers([VersionSpecifier { operator: Equal, version: "2" }]), index: Some(IndexMetadata { url: Url(VerbatimUrl { url: DisplaySafeUrl { scheme: "https", cannot_be_a_base: false, username: "", password: None, host: Some(Domain("test.pypi.org")), port: None, path: "/simple", query: None, fragment: None }, given: None, expanded: false, force_relative: false }), format: Simple }), conflict: None }, scope: Global, origin: None }}
     DEBUG Found static `pyproject.toml` for: project @ file://[TEMP_DIR]/
     DEBUG Solving with installed Python version: 3.12.[X]
     DEBUG Solving with target Python version: >=3.12
@@ -27014,7 +27272,7 @@ fn lock_explicit_default_index() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0", index = "https://test.pypi.org/simple" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2", index = "https://test.pypi.org/simple" }]
         "#
         );
     });
@@ -28809,8 +29067,8 @@ fn lock_fork_strategy_with_python_environments() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", marker = "python_full_version < '3.12'", specifier = "<=1.0.0" },
-            { name = "a", marker = "python_full_version >= '3.12'", specifier = "<=2.0.0" },
+            { name = "a", marker = "python_full_version < '3.12'", specifier = "<=1" },
+            { name = "a", marker = "python_full_version >= '3.12'", specifier = "<=2" },
         ]
         "#);
     });
@@ -28883,8 +29141,8 @@ fn lock_fork_strategy_with_python_environments() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", marker = "python_full_version < '3.12'", specifier = "<=1.0.0" },
-            { name = "a", marker = "python_full_version >= '3.12'", specifier = "<=2.0.0" },
+            { name = "a", marker = "python_full_version < '3.12'", specifier = "<=1" },
+            { name = "a", marker = "python_full_version >= '3.12'", specifier = "<=2" },
         ]
         "#);
     });
@@ -28958,8 +29216,8 @@ fn lock_fork_strategy_with_python_environments() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", marker = "python_full_version < '3.12'", specifier = "==2.0.0" },
-            { name = "a", marker = "python_full_version >= '3.12'", specifier = ">=1.0.0,<=2.0.0" },
+            { name = "a", marker = "python_full_version < '3.12'", specifier = "==2" },
+            { name = "a", marker = "python_full_version >= '3.12'", specifier = ">=1,<=2" },
         ]
         "#);
     });
@@ -29506,7 +29764,7 @@ fn lock_dependency_metadata() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
         "#
         );
     });
@@ -31092,7 +31350,7 @@ fn lock_multiple_sources_index_mixed() -> Result<()> {
         [package.metadata]
         requires-dist = [
             { name = "babel", marker = "extra == 'i18n'", specifier = ">=2.7" },
-            { name = "markupsafe", specifier = ">=2.0" },
+            { name = "markupsafe", specifier = ">=2" },
         ]
         provides-extras = ["i18n"]
 
@@ -34719,7 +34977,7 @@ fn lock_shared_build_dependency() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "libcst", specifier = ">=1.1.0" }]
+        requires-dist = [{ name = "libcst", specifier = ">=1.1" }]
 
         [[package]]
         name = "pyyaml"
@@ -35902,7 +36160,7 @@ fn lock_self_exact() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "project", specifier = "==0.1.0" },
+            { name = "project", specifier = "==0.1" },
             { name = "typing-extensions" },
         ]
 
@@ -37283,12 +37541,12 @@ fn lock_pytorch_cpu() -> Result<()> {
         [manifest]
         constraints = [
             { name = "filelock", specifier = "<=3.16.1" },
-            { name = "fsspec", specifier = "<=2024.12.0" },
+            { name = "fsspec", specifier = "<=2024.12" },
             { name = "jinja2", specifier = "<=3.1.4" },
             { name = "markupsafe", specifier = "<=3.0.2" },
-            { name = "mpmath", specifier = "<=1.3.0" },
+            { name = "mpmath", specifier = "<=1.3" },
             { name = "networkx", specifier = "<=3.4.2" },
-            { name = "numpy", specifier = "<=2.2.0" },
+            { name = "numpy", specifier = "<=2.2" },
             { name = "nvidia-cublas-cu12", specifier = "<=12.4.5.8" },
             { name = "nvidia-cuda-cupti-cu12", specifier = "<=12.4.127" },
             { name = "nvidia-cuda-nvrtc-cu12", specifier = "<=12.4.127" },
@@ -37301,10 +37559,10 @@ fn lock_pytorch_cpu() -> Result<()> {
             { name = "nvidia-nccl-cu12", specifier = "<=2.21.5" },
             { name = "nvidia-nvjitlink-cu12", specifier = "<=12.4.127" },
             { name = "nvidia-nvtx-cu12", specifier = "<=12.4.127" },
-            { name = "pillow", specifier = "<=11.0.0" },
-            { name = "setuptools", specifier = "<=75.6.0" },
+            { name = "pillow", specifier = "<=11" },
+            { name = "setuptools", specifier = "<=75.6" },
             { name = "sympy", specifier = "<=1.13.1" },
-            { name = "triton", specifier = "<=3.1.0" },
+            { name = "triton", specifier = "<=3.1" },
             { name = "typing-extensions", specifier = "<=4.12.2" },
         ]
 
@@ -37627,7 +37885,7 @@ fn lock_pytorch_cpu() -> Result<()> {
         [package.metadata]
         requires-dist = [
             { name = "jinja2", specifier = "<=3.1.4" },
-            { name = "numpy", specifier = "<=2.2.0" },
+            { name = "numpy", specifier = "<=2.2" },
             { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.5.1,<2.5.2", index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu", conflict = { package = "project", extra = "cpu" } },
             { name = "torch", marker = "extra == 'cu124'", specifier = ">=2.5.1,<2.5.2", index = "https://astral-sh.github.io/pytorch-mirror/whl/cu124", conflict = { package = "project", extra = "cu124" } },
             { name = "torchvision", marker = "extra == 'cpu'", specifier = ">=0.20.1,<0.20.2", index = "https://astral-sh.github.io/pytorch-mirror/whl/cpu", conflict = { package = "project", extra = "cpu" } },
@@ -39704,8 +39962,8 @@ fn lock_omit_attached_artifacts_exclude_newer() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", specifier = "==1.0.0" },
-            { name = "b", specifier = "==1.0.0" },
+            { name = "a", specifier = "==1" },
+            { name = "b", specifier = "==1" },
         ]
         "#);
     });
@@ -40098,7 +40356,7 @@ async fn lock_trailing_slash_index_url_in_pyproject_not_index_argument() -> Resu
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = ">=4.3.0" }]
+        requires-dist = [{ name = "anyio", specifier = ">=4.3" }]
 
         [[package]]
         name = "sniffio"
@@ -42367,7 +42625,7 @@ fn lock_refresh() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "sniffio"

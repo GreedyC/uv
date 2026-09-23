@@ -935,6 +935,7 @@ pub(crate) fn finalize_tool_install(
 
     debug!("Adding receipt for tool `{name}`");
     let tool = Tool::new(
+        name.clone(),
         requirements,
         constraints,
         overrides,

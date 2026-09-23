@@ -21,14 +21,13 @@ use uv_static::EnvVars;
 use uv_warnings::warn_user;
 
 pub(crate) use receipt::ToolReceipt;
-pub use requirements::{
+pub use tool::{Tool, ToolEntrypoint};
+pub use uv_configuration::{
     NormalizedBuildConstraints, NormalizedConstraints, NormalizedExcludes, NormalizedOverrides,
     NormalizedRequirements,
 };
-pub use tool::{Tool, ToolEntrypoint};
 
 mod receipt;
-mod requirements;
 mod tool;
 
 /// A wrapper around [`PythonEnvironment`] for tools that provides additional functionality.

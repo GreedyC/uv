@@ -7,6 +7,7 @@ use toml_edit::{Array, Item, Table, Value, value};
 use uv_configuration::ExcludeDependency;
 use uv_distribution_types::{NameRequirementSpecification, Requirement};
 use uv_fs::{PortablePath, Simplified};
+use uv_normalize::PackageName;
 use uv_pypi_types::VerbatimParsedUrl;
 use uv_python::PythonRequest;
 use uv_settings::{ToolOptions, ToolOptionsWire};
@@ -20,10 +21,9 @@ use crate::{
 #[derive(Debug, Clone, Deserialize)]
 #[serde(try_from = "ToolWire", into = "ToolWire")]
 pub struct Tool {
+    /// The target package, written before `--with` requirements in the receipt.
+    target: Option<PackageName>,
     /// The requirements requested by the user during installation.
-    ///
-    /// The first requirement is the tool target itself; any remaining requirements come from
-    /// `--with`.
     requirements: NormalizedRequirements,
     /// The constraints requested by the user during installation.
     constraints: NormalizedConstraints,
@@ -72,10 +72,10 @@ enum RequirementWire {
 
 impl From<Tool> for ToolWire {
     fn from(tool: Tool) -> Self {
+        let mut requirements = tool.requirements.into_inner();
+        requirements.sort_by_key(|requirement| Some(&requirement.name) != tool.target.as_ref());
         Self {
-            requirements: tool
-                .requirements
-                .into_inner()
+            requirements: requirements
                 .into_iter()
                 .map(RequirementWire::Requirement)
                 .collect(),
@@ -94,16 +94,19 @@ impl TryFrom<ToolWire> for Tool {
     type Error = serde::de::value::Error;
 
     fn try_from(tool: ToolWire) -> Result<Self, Self::Error> {
+        let requirements = tool
+            .requirements
+            .into_iter()
+            .map(|requirement| match requirement {
+                RequirementWire::Requirement(requirement) => requirement,
+                RequirementWire::Deprecated(requirement) => Requirement::from(requirement),
+            })
+            .collect::<Vec<_>>();
         Ok(Self {
-            requirements: NormalizedRequirements::from(
-                tool.requirements
-                    .into_iter()
-                    .map(|req| match req {
-                        RequirementWire::Requirement(requirements) => requirements,
-                        RequirementWire::Deprecated(requirement) => Requirement::from(requirement),
-                    })
-                    .collect::<Vec<_>>(),
-            ),
+            target: requirements
+                .first()
+                .map(|requirement| requirement.name.clone()),
+            requirements: NormalizedRequirements::from(requirements),
             constraints: NormalizedConstraints::from(tool.constraints),
             overrides: NormalizedOverrides::from(tool.overrides),
             excludes: NormalizedExcludes::from(tool.excludes),
@@ -179,6 +182,7 @@ fn each_element_on_its_line_array(elements: impl Iterator<Item = impl Into<Value
 impl Tool {
     /// Create a new `Tool`.
     pub fn new(
+        target: PackageName,
         requirements: NormalizedRequirements,
         constraints: NormalizedConstraints,
         overrides: NormalizedOverrides,
@@ -191,6 +195,7 @@ impl Tool {
         let mut entrypoints: Vec<_> = entrypoints.into_iter().collect();
         entrypoints.sort();
         Self {
+            target: Some(target),
             requirements,
             constraints,
             overrides,
@@ -217,6 +222,12 @@ impl Tool {
                 let requirements = self
                     .requirements
                     .iter()
+                    .filter(|requirement| Some(&requirement.name) == self.target.as_ref())
+                    .chain(
+                        self.requirements
+                            .iter()
+                            .filter(|requirement| Some(&requirement.name) != self.target.as_ref()),
+                    )
                     .map(|requirement| {
                         serde::Serialize::serialize(
                             &requirement,

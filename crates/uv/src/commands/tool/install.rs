@@ -810,6 +810,7 @@ pub(crate) async fn install(
                 installed_tools.add_tool_receipt(
                     package_name,
                     Tool::new(
+                        package_name.clone(),
                         requirements.clone(),
                         receipt_constraints.clone(),
                         receipt_overrides.clone(),

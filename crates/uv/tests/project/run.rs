@@ -2595,7 +2595,7 @@ fn run_locked() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "sniffio"
