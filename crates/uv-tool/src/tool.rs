@@ -180,7 +180,7 @@ fn each_element_on_its_line_array(elements: impl Iterator<Item = impl Into<Value
 }
 
 impl Tool {
-    /// Create a new `Tool`.
+    /// Create a [`Tool`] whose target package is written first in its receipt.
     pub fn new(
         target: PackageName,
         requirements: NormalizedRequirements,

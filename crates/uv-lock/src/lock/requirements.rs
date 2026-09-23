@@ -49,6 +49,7 @@ impl<'a> RequirementNormalizer<'a> {
             .map(NormalizedConstraints::from)
     }
 
+    /// Normalize each override within its package scope, retaining empty scopes that shadow others.
     pub(super) fn overrides(
         &self,
         overrides: impl IntoIterator<Item = Override<Requirement>>,
@@ -68,6 +69,7 @@ impl<'a> RequirementNormalizer<'a> {
             .map(NormalizedOverrideEntries::from)
     }
 
+    /// Normalize build constraints without reordering declarations that determine hash precedence.
     pub(super) fn build_constraints(
         &self,
         constraints: impl IntoIterator<Item = NameRequirementSpecification>,
@@ -99,15 +101,13 @@ impl<'a> RequirementNormalizer<'a> {
     }
 }
 
-/// Normalize a [`Requirement`], which could come from a lockfile, a `pyproject.toml`, etc.
+/// Put a [`Requirement`] from a lockfile or current configuration into a comparable form.
 ///
-/// Performs the following steps:
+/// Resolve local paths against the workspace root, strip credentials and origin metadata, and
+/// simplify markers against [`RequiresPython`]. Clear the dependency-group scope, which is not
+/// serialized in the lockfile; callers compare dependency groups and package overrides separately.
 ///
-/// 1. Removes any sensitive credentials.
-/// 2. Ensures that the lock and install paths are appropriately framed with respect to the
-///    workspace root.
-/// 3. Removes the `origin` field, which is only used in `requirements.txt`.
-/// 4. Simplifies the markers using the provided [`RequiresPython`] instance.
+/// Version constraints are combined separately by the collection normalizers.
 pub(super) fn normalize_requirement(
     mut requirement: Requirement,
     root: &Path,
@@ -116,9 +116,12 @@ pub(super) fn normalize_requirement(
     // Sort the extras and groups for consistency.
     requirement.extras.sort();
     requirement.groups.sort();
+    requirement.marker = requires_python.simplify_markers(requirement.marker);
+    requirement.scope = RequirementScope::Global;
+    requirement.origin = None;
 
     // Normalize the requirement source.
-    match requirement.source {
+    requirement.source = match requirement.source {
         RequirementSource::GitDirectory {
             git,
             subdirectory,
@@ -149,19 +152,11 @@ pub(super) fn normalize_requirement(
                 subdirectory: subdirectory.clone(),
             });
 
-            Ok(Requirement {
-                name: requirement.name,
-                extras: requirement.extras,
-                groups: requirement.groups,
-                marker: requires_python.simplify_markers(requirement.marker),
-                source: RequirementSource::GitDirectory {
-                    git,
-                    subdirectory,
-                    url: VerbatimUrl::from_url(url),
-                },
-                scope: RequirementScope::Global,
-                origin: None,
-            })
+            RequirementSource::GitDirectory {
+                git,
+                subdirectory,
+                url: VerbatimUrl::from_url(url),
+            }
         }
         RequirementSource::GitPath {
             git,
@@ -195,20 +190,12 @@ pub(super) fn normalize_requirement(
                 ext,
             });
 
-            Ok(Requirement {
-                name: requirement.name,
-                extras: requirement.extras,
-                groups: requirement.groups,
-                marker: requires_python.simplify_markers(requirement.marker),
-                source: RequirementSource::GitPath {
-                    git,
-                    install_path,
-                    ext,
-                    url: VerbatimUrl::from_url(url),
-                },
-                scope: RequirementScope::Global,
-                origin: None,
-            })
+            RequirementSource::GitPath {
+                git,
+                install_path,
+                ext,
+                url: VerbatimUrl::from_url(url),
+            }
         }
         RequirementSource::Path {
             install_path,
@@ -220,19 +207,11 @@ pub(super) fn normalize_requirement(
             let url = VerbatimUrl::from_normalized_path(&install_path)
                 .map_err(LockErrorKind::RequirementVerbatimUrl)?;
 
-            Ok(Requirement {
-                name: requirement.name,
-                extras: requirement.extras,
-                groups: requirement.groups,
-                marker: requires_python.simplify_markers(requirement.marker),
-                source: RequirementSource::Path {
-                    install_path,
-                    ext,
-                    url,
-                },
-                scope: RequirementScope::Global,
-                origin: None,
-            })
+            RequirementSource::Path {
+                install_path,
+                ext,
+                url,
+            }
         }
         RequirementSource::Directory {
             install_path,
@@ -245,20 +224,12 @@ pub(super) fn normalize_requirement(
             let url = VerbatimUrl::from_normalized_path(&install_path)
                 .map_err(LockErrorKind::RequirementVerbatimUrl)?;
 
-            Ok(Requirement {
-                name: requirement.name,
-                extras: requirement.extras,
-                groups: requirement.groups,
-                marker: requires_python.simplify_markers(requirement.marker),
-                source: RequirementSource::Directory {
-                    install_path,
-                    editable: Some(editable.unwrap_or(false)),
-                    r#virtual: Some(r#virtual.unwrap_or(false)),
-                    url,
-                },
-                scope: RequirementScope::Global,
-                origin: None,
-            })
+            RequirementSource::Directory {
+                install_path,
+                editable: Some(editable.unwrap_or(false)),
+                r#virtual: Some(r#virtual.unwrap_or(false)),
+                url,
+            }
         }
         RequirementSource::Registry {
             specifier,
@@ -273,19 +244,11 @@ pub(super) fn normalize_requirement(
                     index
                 })
                 .map(|index| IndexMetadata::from(IndexUrl::from(VerbatimUrl::from_url(index))));
-            Ok(Requirement {
-                name: requirement.name,
-                extras: requirement.extras,
-                groups: requirement.groups,
-                marker: requires_python.simplify_markers(requirement.marker),
-                source: RequirementSource::Registry {
-                    specifier,
-                    index,
-                    conflict,
-                },
-                scope: RequirementScope::Global,
-                origin: None,
-            })
+            RequirementSource::Registry {
+                specifier,
+                index,
+                conflict,
+            }
         }
         RequirementSource::Url {
             mut location,
@@ -306,20 +269,13 @@ pub(super) fn normalize_requirement(
                 ext,
             });
 
-            Ok(Requirement {
-                name: requirement.name,
-                extras: requirement.extras,
-                groups: requirement.groups,
-                marker: requires_python.simplify_markers(requirement.marker),
-                source: RequirementSource::Url {
-                    location,
-                    subdirectory,
-                    ext,
-                    url: VerbatimUrl::from_url(url),
-                },
-                scope: RequirementScope::Global,
-                origin: None,
-            })
+            RequirementSource::Url {
+                location,
+                subdirectory,
+                ext,
+                url: VerbatimUrl::from_url(url),
+            }
         }
-    }
+    };
+    Ok(requirement)
 }

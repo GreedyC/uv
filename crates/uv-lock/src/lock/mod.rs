@@ -3796,15 +3796,16 @@ impl Lock {
                     .collect(),
             ));
         }
-        let expected_requirements = expected_requirements.into_inner().into_iter().collect();
-        let flattened =
-            flattened.map(|requirements| requirements.into_inner().into_iter().collect());
-        let expected_groups = expected_groups
-            .into_iter()
-            .map(|(group, requirements)| (group, requirements.into_inner().into_iter().collect()))
-            .collect();
-
         if allow_missing_package_metadata {
+            let expected_requirements = expected_requirements.into_inner().into_iter().collect();
+            let flattened =
+                flattened.map(|requirements| requirements.into_inner().into_iter().collect());
+            let expected_groups = expected_groups
+                .into_iter()
+                .map(|(group, requirements)| {
+                    (group, requirements.into_inner().into_iter().collect())
+                })
+                .collect();
             let declarations = flattened.as_ref().unwrap_or(&expected_requirements);
             let package_activated_extras = activated_extras
                 .get(&package.id)

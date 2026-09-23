@@ -18,7 +18,9 @@ use version_ranges::Ranges;
 
 use crate::{ExcludeDependency, Excludes, Override, PackageOverride, PackageOverrideTarget};
 
-/// Requirements with equivalent declarations combined, including false markers that overrides can replace.
+/// Requirements with equivalent declarations combined.
+///
+/// False markers remain because overrides can replace them before resolution.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct NormalizedRequirements(RequirementSet);
 
@@ -136,6 +138,7 @@ impl From<Vec<Override<Requirement>>> for NormalizedOverrideEntries {
 }
 
 impl NormalizedOverrideEntries {
+    /// Return global overrides followed by one declaration per package scope, including empty scopes.
     pub fn into_inner(self) -> Vec<Override<Requirement>> {
         self.global
             .into_inner()
