@@ -102,7 +102,7 @@ impl Excludes {
     /// Return sorted declarations, combining duplicate exclusions within each package scope.
     ///
     /// Retain empty version-specific scopes: they shadow exclusions from a versionless scope.
-    pub fn into_entries(self) -> Vec<ExcludeDependency> {
+    pub(crate) fn into_entries(self) -> Vec<ExcludeDependency> {
         let mut entries = self
             .global
             .into_iter()
