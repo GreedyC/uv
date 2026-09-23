@@ -186,7 +186,7 @@ fn lock_equivalent_requirements() -> Result<()> {
         name = "project"
         version = "0.1.0"
         requires-python = ">=3.12"
-        dependencies = ["ok>=1.0", "ok>=2", "ok<3", "ok<4", "missing; python_version < '0'"]
+        dependencies = ["ok>=1.0", "ok>=2", "ok<3", "ok<4"]
 
         [dependency-groups]
         dev = ["ok>=1", "ok<3", "ok<4"]
