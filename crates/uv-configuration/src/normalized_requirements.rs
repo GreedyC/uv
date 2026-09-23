@@ -5,8 +5,8 @@
 
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
-use std::mem;
 use std::ops::Deref;
+use std::{iter, mem};
 
 use indexmap::IndexMap;
 use uv_distribution_types::{NameRequirementSpecification, Requirement, RequirementSource};
@@ -232,9 +232,7 @@ impl From<Vec<NameRequirementSpecification>> for NormalizedBuildConstraints {
                 .then_with(|| left.hashes.cmp(&right.hashes))
         });
         normalized.dedup_by(|left, right| {
-            left.hashes == right.hashes
-                && RequirementsKey::new(left.requirement.clone())
-                    == RequirementsKey::new(right.requirement.clone())
+            left.hashes == right.hashes && requirements_equal(&left.requirement, &right.requirement)
         });
         Self(normalized)
     }
@@ -245,8 +243,7 @@ impl PartialEq for NormalizedBuildConstraints {
         self.len() == other.len()
             && self.iter().zip(other.iter()).all(|(left, right)| {
                 left.hashes == right.hashes
-                    && RequirementsKey::new(left.requirement.clone())
-                        == RequirementsKey::new(right.requirement.clone())
+                    && requirements_equal(&left.requirement, &right.requirement)
             })
     }
 }
@@ -269,10 +266,37 @@ struct RequirementSet(Vec<Requirement>);
 impl PartialEq for RequirementSet {
     fn eq(&self, other: &Self) -> bool {
         self.0.len() == other.0.len()
-            && self.0.iter().zip(&other.0).all(|(left, right)| {
-                RequirementsKey::new(left.clone()) == RequirementsKey::new(right.clone())
-            })
+            && self
+                .0
+                .iter()
+                .zip(&other.0)
+                .all(|(left, right)| requirements_equal(left, right))
     }
+}
+
+/// Compare identical declarations without allocating semantic keys.
+/// Version equality ignores release precision, which can affect wildcard and compatible clauses.
+fn requirements_equal(left: &Requirement, right: &Requirement) -> bool {
+    if left == right
+        && if let (
+            RequirementSource::Registry {
+                specifier: left, ..
+            },
+            RequirementSource::Registry {
+                specifier: right, ..
+            },
+        ) = (&left.source, &right.source)
+        {
+            left.iter().zip(right.iter()).all(|(left, right)| {
+                left.version().release().len() == right.version().release().len()
+            })
+        } else {
+            true
+        }
+    {
+        return true;
+    }
+    RequirementsKey::new(left.clone()) == RequirementsKey::new(right.clone())
 }
 
 /// A requirement compared by accepted versions and prerelease and yanked-version policies.
@@ -312,14 +336,46 @@ impl RequirementsKey {
 /// Extras are unioned and version constraints intersected wherever markers overlap.
 /// Standalone pins stay separate because they permit yanked versions.
 /// False requirements and overrides remain because overrides can replace their markers.
-fn normalize(requirements: Vec<Requirement>) -> Vec<Requirement> {
-    let mut sources = BTreeMap::<Requirement, Vec<Requirement>>::new();
-    for mut requirement in requirements {
-        let mut extras = requirement.extras.into_vec();
+fn normalize(mut requirements: Vec<Requirement>) -> Vec<Requirement> {
+    for requirement in &mut requirements {
+        let mut extras = mem::take(&mut requirement.extras).into_vec();
         extras.sort();
         extras.dedup();
         requirement.extras = extras.into_boxed_slice();
         requirement.groups.sort();
+    }
+    requirements.sort_by(compare_requirements);
+
+    let mut normalized = Vec::with_capacity(requirements.len());
+    let mut requirements = requirements.into_iter().peekable();
+    while let Some(mut requirement) = requirements.next() {
+        if requirements
+            .peek()
+            .is_none_or(|next| next.name != requirement.name)
+        {
+            if let RequirementSource::Registry { specifier, .. } = &mut requirement.source {
+                *specifier = simplify_specifiers(mem::take(specifier));
+            }
+            normalized.push(requirement);
+        } else {
+            let name = requirement.name.clone();
+            normalized.extend(normalize_package_requirements(
+                iter::once(requirement).chain(iter::from_fn(|| {
+                    requirements.next_if(|requirement| requirement.name == name)
+                })),
+            ));
+        }
+    }
+    normalized.sort_by(compare_requirements);
+    normalized
+}
+
+/// Merge declarations for a package that occurs more than once in the input.
+fn normalize_package_requirements(
+    requirements: impl IntoIterator<Item = Requirement>,
+) -> Vec<Requirement> {
+    let mut sources = BTreeMap::<Requirement, Vec<Requirement>>::new();
+    for requirement in requirements {
         let mut key = requirement.clone();
         key.extras = Box::new([]);
         // Overrides retain a dependency's top-level extra condition. Combining different extra
@@ -337,8 +393,7 @@ fn normalize(requirements: Vec<Requirement>) -> Vec<Requirement> {
     }
 
     let mut normalized = Vec::new();
-    for mut requirements in sources.into_values() {
-        requirements.sort_by(compare_requirements);
+    for requirements in sources.into_values() {
         let mut regions: Vec<Requirement> = Vec::new();
         for requirement in requirements {
             let mut remaining = requirement.marker;
@@ -390,7 +445,6 @@ fn normalize(requirements: Vec<Requirement>) -> Vec<Requirement> {
         normalized.extend(regions);
     }
 
-    normalized.sort_by(compare_requirements);
     normalized
 }
 
@@ -403,12 +457,18 @@ fn compare_requirements(left: &Requirement, right: &Requirement) -> Ordering {
 
 /// Combine disjoint marker regions with equivalent extras, accepted versions, and candidate policies.
 /// Keep the first region's simplified specifiers when multiple forms accept the same versions.
-fn coalesce(requirements: Vec<Requirement>) -> Vec<Requirement> {
-    let mut combined = IndexMap::<RequirementsKey, Requirement>::new();
-    for mut requirement in requirements {
+fn coalesce(mut requirements: Vec<Requirement>) -> Vec<Requirement> {
+    for requirement in &mut requirements {
         if let RequirementSource::Registry { specifier, .. } = &mut requirement.source {
             *specifier = simplify_specifiers(mem::take(specifier));
         }
+    }
+    if requirements.len() <= 1 {
+        return requirements;
+    }
+
+    let mut combined = IndexMap::<RequirementsKey, Requirement>::new();
+    for requirement in requirements {
         let mut key = requirement.clone();
         key.marker = MarkerTree::TRUE;
         combined
