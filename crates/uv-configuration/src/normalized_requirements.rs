@@ -18,9 +18,7 @@ use version_ranges::Ranges;
 
 use crate::{ExcludeDependency, Excludes, Override, PackageOverride, PackageOverrideTarget};
 
-/// Requirements with equivalent declarations combined.
-///
-/// False markers remain because overrides can replace them before resolution.
+/// Requirements with equivalent declarations combined and always-false markers removed.
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct NormalizedRequirements(RequirementSet);
 
@@ -31,7 +29,8 @@ impl NormalizedRequirements {
 }
 
 impl From<Vec<Requirement>> for NormalizedRequirements {
-    fn from(requirements: Vec<Requirement>) -> Self {
+    fn from(mut requirements: Vec<Requirement>) -> Self {
+        requirements.retain(|requirement| !requirement.marker.is_false());
         Self(RequirementSet(normalize(requirements)))
     }
 }
@@ -311,7 +310,7 @@ impl RequirementsKey {
 ///
 /// Extras are unioned and version constraints intersected wherever markers overlap.
 /// Standalone pins stay separate because they permit yanked versions.
-/// False requirements and overrides remain because overrides can replace their markers.
+/// False overrides remain to suppress dependencies; other callers discard false declarations.
 fn normalize(requirements: Vec<Requirement>) -> Vec<Requirement> {
     let mut sources = BTreeMap::<Requirement, Vec<Requirement>>::new();
     for mut requirement in requirements {
