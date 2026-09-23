@@ -1935,8 +1935,8 @@ fn group_basic() -> Result<()> {
         [package.metadata]
 
         [package.metadata.requires-dev]
-        group1 = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
-        group2 = [{ name = "sortedcontainers", specifier = "==2.4.0" }]
+        group1 = [{ name = "sortedcontainers", specifier = "==2.3" }]
+        group2 = [{ name = "sortedcontainers", specifier = "==2.4" }]
 
         [[package]]
         name = "sortedcontainers"
@@ -2072,8 +2072,8 @@ fn group_default() -> Result<()> {
         [package.metadata]
 
         [package.metadata.requires-dev]
-        group1 = [{ name = "sortedcontainers", specifier = "==2.3.0" }]
-        group2 = [{ name = "sortedcontainers", specifier = "==2.4.0" }]
+        group1 = [{ name = "sortedcontainers", specifier = "==2.3" }]
+        group2 = [{ name = "sortedcontainers", specifier = "==2.4" }]
 
         [[package]]
         name = "sortedcontainers"

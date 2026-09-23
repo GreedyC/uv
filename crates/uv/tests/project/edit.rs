@@ -1313,7 +1313,7 @@ fn add_remove_dev() -> Result<()> {
         [package.metadata]
 
         [package.metadata.requires-dev]
-        dev = [{ name = "anyio", specifier = "==3.7.0" }]
+        dev = [{ name = "anyio", specifier = "==3.7" }]
 
         [[package]]
         name = "sniffio"
