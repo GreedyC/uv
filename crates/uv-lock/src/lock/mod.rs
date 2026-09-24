@@ -4112,23 +4112,13 @@ impl Lock {
 
         let mut source_tree_metadata = FxHashMap::default();
 
-        // Build hash precedence depends on declaration order.
+        // Validate the build constraints.
         {
             let expected =
                 normalizer.build_constraints(build_constraints.specifications().cloned())?;
             let actual =
                 normalizer.build_constraints(self.manifest.build_constraints.iter().cloned())?;
-            // Non-preview output sorts declarations. Accept that legacy representation too,
-            // without reordering the stored declarations and changing their hash precedence.
-            let matches = expected == actual
-                || (!uv_preview::is_enabled(PreviewFeature::LockfileNormalization)
-                    && normalizer.build_constraints(
-                        build_constraints
-                            .specifications()
-                            .cloned()
-                            .collect::<BTreeSet<_>>(),
-                    )? == actual);
-            if !matches {
+            if expected != actual {
                 return Ok(SatisfiesResult::MismatchedBuildConstraints(
                     expected.into_inner(),
                     actual.into_inner(),
@@ -6008,10 +5998,9 @@ pub struct ResolverManifest {
     /// The excludes provided to the resolver.
     #[serde(default)]
     excludes: BTreeSet<ExcludeDependency>,
-    /// The build constraints. The lockfile normalization preview retains declaration order to
-    /// preserve hash precedence.
+    /// The build constraints provided to the resolver.
     #[serde(default)]
-    build_constraints: Vec<NameRequirementSpecification>,
+    build_constraints: BTreeSet<NameRequirementSpecification>,
     /// The static metadata provided to the resolver.
     #[serde(default)]
     dependency_metadata: BTreeSet<StaticMetadata>,
@@ -6107,7 +6096,7 @@ impl ResolverManifest {
                 .build_constraints
                 .into_iter()
                 .map(|requirement| requirement.relative_to(root))
-                .collect::<Result<Vec<_>, _>>()?,
+                .collect::<Result<BTreeSet<_>, _>>()?,
             dependency_groups: self
                 .dependency_groups
                 .into_iter()

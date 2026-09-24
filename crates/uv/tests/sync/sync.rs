@@ -17134,8 +17134,8 @@ fn project_build_hashes_preview_lock_without_preview() -> Result<()> {
         no-index = true
         find-links = ["wheels"]
         build-constraint-dependencies = [
-            {{ requirement = "build-dependency==1.0.0", hashes = ["sha256:{hash}"] }},
-            {{ requirement = "build-dependency==1.0.0", hashes = ["sha256:0000000000000000000000000000000000000000000000000000000000000000"] }},
+            {{ requirement = "build-dependency==1.0.0", hashes = ["sha256:0000000000000000000000000000000000000000000000000000000000000000", "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"] }},
+            {{ requirement = "build-dependency==1.0.0", hashes = ["sha256:{hash}", "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"] }},
         ]
     "#})?;
 
@@ -17145,7 +17145,7 @@ fn project_build_hashes_preview_lock_without_preview() -> Result<()> {
     Resolved 1 package in [TIME]
     ");
 
-    // Reading a preview lock without the flag must retain the last declaration's hashes.
+    // Reading a preview lock without the flag must intersect both declarations' hashes.
     uv_snapshot!(context.filters(), context.sync().args(["--frozen", "--no-editable"]), @"
     exit_code: 1 (failure)
     ----- stderr -----
@@ -17155,7 +17155,7 @@ fn project_build_hashes_preview_lock_without_preview() -> Result<()> {
       cause: Hash mismatch for `build-dependency==1.0.0`
 
              Expected:
-               sha256:0000000000000000000000000000000000000000000000000000000000000000
+               sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 
              Computed:
                sha256:[BUILD_HASH]

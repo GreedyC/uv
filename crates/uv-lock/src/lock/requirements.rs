@@ -72,7 +72,7 @@ impl<'a> RequirementNormalizer<'a> {
             .map(NormalizedOverrideEntries::from)
     }
 
-    /// Normalize build constraints without reordering declarations that determine hash precedence.
+    /// Normalize build constraints while retaining hash restrictions for validation.
     pub(super) fn build_constraints(
         &self,
         constraints: impl IntoIterator<Item = NameRequirementSpecification>,

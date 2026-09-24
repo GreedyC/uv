@@ -475,7 +475,7 @@ fn lock_equivalent_manifest_inputs() -> Result<()> {
     Ok(())
 }
 
-/// Build constraints retain order because later hashes for a version take precedence.
+/// Reordering build constraints preserves their hash restrictions and can reuse the lock.
 #[cfg(feature = "test-universal")]
 #[test]
 fn lock_build_constraint_order() -> Result<()> {
@@ -489,7 +489,7 @@ fn lock_build_constraint_order() -> Result<()> {
 
         [tool.uv]
         build-constraint-dependencies = [
-            { requirement = "a==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
+            { requirement = "a==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
             { requirement = "a==1", hashes = ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
         ]
     "#})?;
@@ -509,7 +509,7 @@ fn lock_build_constraint_order() -> Result<()> {
     [manifest]
     build-constraints = [
         { name = "a", specifier = "==1", hashes = ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
-        { name = "a", specifier = "==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
+        { name = "a", specifier = "==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
     ]
 
     [[package]]
@@ -523,6 +523,7 @@ fn lock_build_constraint_order() -> Result<()> {
     Resolved 1 package in [TIME]
     ");
 
+    fs_err::remove_file(context.temp_dir.child("uv.lock"))?;
     uv_snapshot!(context.filters(), context.lock().arg("--preview-features").arg("lockfile-normalization").arg("--offline"), @"
     exit_code: 0 (success)
     ----- stderr -----
@@ -538,8 +539,8 @@ fn lock_build_constraint_order() -> Result<()> {
 
     [manifest]
     build-constraints = [
-        { name = "a", specifier = "==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
         { name = "a", specifier = "==1", hashes = ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
+        { name = "a", specifier = "==1", hashes = ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
     ]
 
     [[package]]
@@ -569,25 +570,19 @@ fn lock_build_constraint_order() -> Result<()> {
         [tool.uv]
         build-constraint-dependencies = [
             { requirement = "a==1", hashes = ["sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
-            { requirement = "a==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
+            { requirement = "a==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"] },
         ]
     "#})?;
-    // Hash precedence changes must invalidate a preview lock even without the feature.
+    // Reordering the same declarations can reuse the lock with or without the preview.
     uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline"), @"
-    exit_code: 1 (failure)
+    exit_code: 0 (success)
     ----- stderr -----
     Resolved 1 package in [TIME]
-    error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided.
-
-    hint: To update the lockfile, run `uv lock`.
     ");
     uv_snapshot!(context.filters(), context.lock().arg("--preview-features").arg("lockfile-normalization").arg("--locked").arg("--offline"), @"
-    exit_code: 1 (failure)
+    exit_code: 0 (success)
     ----- stderr -----
     Resolved 1 package in [TIME]
-    error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided.
-
-    hint: To update the lockfile, run `uv lock`.
     ");
     Ok(())
 }
