@@ -3807,6 +3807,7 @@ fn preview_features() {
     +            NoDistutilsPatch,
     +            IndexHashAlgorithm,
     +            LockfileFormatCheck,
+    +            LockfileNormalization,
     +            LockWithoutMetadata,
     +            TarCodec,
     +            IndexByName,
