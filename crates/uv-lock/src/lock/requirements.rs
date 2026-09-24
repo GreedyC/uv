@@ -14,7 +14,6 @@ use uv_distribution_types::{
 use uv_fs::normalize_path;
 use uv_git_types::GitUrl;
 use uv_pep508::VerbatimUrl;
-use uv_preview::PreviewFeature;
 use uv_pypi_types::{ParsedArchiveUrl, ParsedGitDirectoryUrl, ParsedGitPathUrl};
 use uv_redacted::DisplaySafeUrl;
 
@@ -78,7 +77,7 @@ impl<'a> RequirementNormalizer<'a> {
         &self,
         constraints: impl IntoIterator<Item = NameRequirementSpecification>,
     ) -> Result<NormalizedBuildConstraints, LockError> {
-        let mut constraints = constraints
+        constraints
             .into_iter()
             .map(|constraint| {
                 Ok(NameRequirementSpecification {
@@ -90,13 +89,8 @@ impl<'a> RequirementNormalizer<'a> {
                     hashes: constraint.hashes,
                 })
             })
-            .collect::<Result<Vec<_>, LockError>>()?;
-        // Non-preview lockfiles serialize build constraints in sorted order.
-        if !uv_preview::is_enabled(PreviewFeature::LockfileNormalization) {
-            constraints.sort();
-            constraints.dedup();
-        }
-        Ok(NormalizedBuildConstraints::from(constraints))
+            .collect::<Result<Vec<_>, LockError>>()
+            .map(NormalizedBuildConstraints::from)
     }
 
     fn declarations(

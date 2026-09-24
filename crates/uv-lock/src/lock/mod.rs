@@ -2619,20 +2619,12 @@ impl Lock {
         mut packages: Vec<Package>,
         requires_python: RequiresPython,
         options: ResolverOptions,
-        mut manifest: ResolverManifest,
+        manifest: ResolverManifest,
         conflicts: Conflicts,
         supported_environments: Vec<MarkerTree>,
         required_environments: Vec<MarkerTree>,
         fork_markers: Vec<UniversalMarker>,
     ) -> Result<Self, LockError> {
-        // Stable lockfiles sort build constraints; preview mode retains hash precedence.
-        if !manifest.build_constraints.is_empty()
-            && !uv_preview::is_enabled(PreviewFeature::LockfileNormalization)
-        {
-            manifest.build_constraints.sort();
-            manifest.build_constraints.dedup();
-        }
-
         // Put all dependencies for each package in a canonical order and
         // check for duplicates.
         for package in &mut packages {
@@ -4126,7 +4118,17 @@ impl Lock {
                 normalizer.build_constraints(build_constraints.specifications().cloned())?;
             let actual =
                 normalizer.build_constraints(self.manifest.build_constraints.iter().cloned())?;
-            if expected != actual {
+            // Non-preview output sorts declarations. Accept that legacy representation too,
+            // without reordering the stored declarations and changing their hash precedence.
+            let matches = expected == actual
+                || (!uv_preview::is_enabled(PreviewFeature::LockfileNormalization)
+                    && normalizer.build_constraints(
+                        build_constraints
+                            .specifications()
+                            .cloned()
+                            .collect::<BTreeSet<_>>(),
+                    )? == actual);
+            if !matches {
                 return Ok(SatisfiesResult::MismatchedBuildConstraints(
                     expected.into_inner(),
                     actual.into_inner(),

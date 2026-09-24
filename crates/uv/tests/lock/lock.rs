@@ -553,6 +553,13 @@ fn lock_build_constraint_order() -> Result<()> {
     Resolved 1 package in [TIME]
     ");
 
+    // The same declarations can reuse a preview lock without enabling the feature.
+    uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline"), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
     pyproject_toml.write_str(indoc! {r#"
         [project]
         name = "project"
@@ -565,6 +572,15 @@ fn lock_build_constraint_order() -> Result<()> {
             { requirement = "a==1", hashes = ["sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"] },
         ]
     "#})?;
+    // Hash precedence changes must invalidate a preview lock even without the feature.
+    uv_snapshot!(context.filters(), context.lock().arg("--locked").arg("--offline"), @"
+    exit_code: 1 (failure)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    error: The lockfile at `uv.lock` needs to be updated, but `--locked` was provided.
+
+    hint: To update the lockfile, run `uv lock`.
+    ");
     uv_snapshot!(context.filters(), context.lock().arg("--preview-features").arg("lockfile-normalization").arg("--locked").arg("--offline"), @"
     exit_code: 1 (failure)
     ----- stderr -----

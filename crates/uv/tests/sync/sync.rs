@@ -17114,6 +17114,60 @@ fn project_build_hashes_conflicting_constraints() -> Result<()> {
 }
 
 #[test]
+fn project_build_hashes_preview_lock_without_preview() -> Result<()> {
+    let (context, hash) = build_hash_project()?;
+    context
+        .temp_dir
+        .child("pyproject.toml")
+        .write_str(&formatdoc! {r#"
+        [project]
+        name = "project"
+        version = "0.1.0"
+        requires-python = ">=3.12"
+
+        [build-system]
+        requires = ["build-dependency==1.0.0"]
+        build-backend = "backend"
+        backend-path = ["."]
+
+        [tool.uv]
+        no-index = true
+        find-links = ["wheels"]
+        build-constraint-dependencies = [
+            {{ requirement = "build-dependency==1.0.0", hashes = ["sha256:{hash}"] }},
+            {{ requirement = "build-dependency==1.0.0", hashes = ["sha256:0000000000000000000000000000000000000000000000000000000000000000"] }},
+        ]
+    "#})?;
+
+    uv_snapshot!(context.filters(), context.lock().args(["--preview-features", "lockfile-normalization"]), @"
+    exit_code: 0 (success)
+    ----- stderr -----
+    Resolved 1 package in [TIME]
+    ");
+
+    // Reading a preview lock without the flag must retain the last declaration's hashes.
+    uv_snapshot!(context.filters(), context.sync().args(["--frozen", "--no-editable"]), @"
+    exit_code: 1 (failure)
+    ----- stderr -----
+    error: Failed to build `project @ file://[TEMP_DIR]/`
+      cause: Failed to install requirements from `build-system.requires`
+      cause: Failed to download `build-dependency==1.0.0`
+      cause: Hash mismatch for `build-dependency==1.0.0`
+
+             Expected:
+               sha256:0000000000000000000000000000000000000000000000000000000000000000
+
+             Computed:
+               sha256:[BUILD_HASH]
+    ");
+    context
+        .temp_dir
+        .child("backend-executed")
+        .assert(predicate::path::missing());
+    Ok(())
+}
+
+#[test]
 fn project_build_hashes_incorrect() -> Result<()> {
     let (context, _) = build_hash_project()?;
     let pyproject = context.read("pyproject.toml");
