@@ -221,8 +221,8 @@ fn root_package_splits_transitive_too() -> Result<()> {
 
     [package.metadata]
     requires-dist = [
-        { name = "anyio", marker = "python_full_version < '3.12'", specifier = "==4.2" },
-        { name = "anyio", marker = "python_full_version >= '3.12'", specifier = "==4.3" },
+        { name = "anyio", marker = "python_full_version < '3.12'", specifier = "==4.2.0" },
+        { name = "anyio", marker = "python_full_version >= '3.12'", specifier = "==4.3.0" },
         { name = "b", directory = "b" },
     ]
 
@@ -416,8 +416,8 @@ fn root_package_splits_other_dependencies_too() -> Result<()> {
 
     [package.metadata]
     requires-dist = [
-        { name = "anyio", marker = "python_full_version < '3.12'", specifier = "==4.2" },
-        { name = "anyio", marker = "python_full_version >= '3.12'", specifier = "==4.3" },
+        { name = "anyio", marker = "python_full_version < '3.12'", specifier = "==4.2.0" },
+        { name = "anyio", marker = "python_full_version >= '3.12'", specifier = "==4.3.0" },
         { name = "b1", marker = "python_full_version < '3.12'", directory = "b1" },
         { name = "b2", marker = "python_full_version >= '3.12'", directory = "b2" },
     ]
@@ -474,7 +474,7 @@ fn root_package_splits_other_dependencies_too() -> Result<()> {
     ]
 
     [package.metadata]
-    requires-dist = [{ name = "iniconfig", specifier = "==2" }]
+    requires-dist = [{ name = "iniconfig", specifier = "==2.0.0" }]
 
     [[package]]
     name = "idna"
@@ -779,7 +779,7 @@ fn dont_pre_visit_url_packages() -> Result<()> {
     [package.metadata]
     requires-dist = [
         { name = "b", directory = "b" },
-        { name = "c", specifier = "==0.1" },
+        { name = "c", specifier = "==0.1.0" },
     ]
 
     [[package]]

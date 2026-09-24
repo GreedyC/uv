@@ -553,7 +553,10 @@ fn fork_allows_non_conflicting_repeated_dependencies() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "a", specifier = ">=1,<2" }]
+        requires-dist = [
+            { name = "a", specifier = "<2" },
+            { name = "a", specifier = ">=1" },
+        ]
         "#
         );
     });
@@ -994,10 +997,10 @@ fn fork_filter_sibling_dependencies() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", marker = "sys_platform == 'darwin'", specifier = "==4.3" },
-            { name = "a", marker = "sys_platform == 'linux'", specifier = "==4.4" },
-            { name = "b", marker = "sys_platform == 'linux'", specifier = "==1" },
-            { name = "c", marker = "sys_platform == 'darwin'", specifier = "==1" },
+            { name = "a", marker = "sys_platform == 'darwin'", specifier = "==4.3.0" },
+            { name = "a", marker = "sys_platform == 'linux'", specifier = "==4.4.0" },
+            { name = "b", marker = "sys_platform == 'linux'", specifier = "==1.0.0" },
+            { name = "c", marker = "sys_platform == 'darwin'", specifier = "==1.0.0" },
         ]
         "#
         );
@@ -1393,8 +1396,8 @@ fn fork_marker_accrue() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", marker = "implementation_name == 'cpython'", specifier = "==1" },
-            { name = "b", marker = "implementation_name == 'pypy'", specifier = "==1" },
+            { name = "a", marker = "implementation_name == 'cpython'", specifier = "==1.0.0" },
+            { name = "b", marker = "implementation_name == 'pypy'", specifier = "==1.0.0" },
         ]
         "#
         );
@@ -2987,8 +2990,8 @@ fn fork_non_fork_marker_transitive() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", specifier = "==1" },
-            { name = "b", specifier = "==1" },
+            { name = "a", specifier = "==1.0.0" },
+            { name = "b", specifier = "==1.0.0" },
         ]
         "#
         );
@@ -3254,9 +3257,9 @@ fn fork_overlapping_markers_basic() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", marker = "python_full_version < '3.13'", specifier = ">=1" },
-            { name = "a", marker = "python_full_version == '3.13.*'", specifier = ">=1.1" },
-            { name = "a", marker = "python_full_version >= '3.14'", specifier = ">=1.2" },
+            { name = "a", marker = "python_full_version < '3.13'", specifier = ">=1.0.0" },
+            { name = "a", marker = "python_full_version >= '3.13'", specifier = ">=1.1.0" },
+            { name = "a", marker = "python_full_version >= '3.14'", specifier = ">=1.2.0" },
         ]
         "#
         );
@@ -4376,7 +4379,7 @@ fn fork_requires_python_full_prerelease() -> Result<()> {
         source = { virtual = "." }
 
         [package.metadata]
-        requires-dist = [{ name = "a", marker = "python_full_version == '3.9'", specifier = "==1" }]
+        requires-dist = [{ name = "a", marker = "python_full_version == '3.9'", specifier = "==1.0.0" }]
         "#
         );
     });
@@ -4457,7 +4460,7 @@ fn fork_requires_python_full() -> Result<()> {
         source = { virtual = "." }
 
         [package.metadata]
-        requires-dist = [{ name = "a", marker = "python_full_version == '3.9'", specifier = "==1" }]
+        requires-dist = [{ name = "a", marker = "python_full_version == '3.9'", specifier = "==1.0.0" }]
         "#
         );
     });
@@ -4555,7 +4558,7 @@ fn fork_requires_python_patch_overlap() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "a", marker = "python_full_version == '3.10.*'", specifier = "==1" }]
+        requires-dist = [{ name = "a", marker = "python_full_version == '3.10.*'", specifier = "==1.0.0" }]
         "#
         );
     });
@@ -4633,7 +4636,7 @@ fn fork_requires_python() -> Result<()> {
         source = { virtual = "." }
 
         [package.metadata]
-        requires-dist = [{ name = "a", marker = "python_full_version == '3.9.*'", specifier = "==1" }]
+        requires-dist = [{ name = "a", marker = "python_full_version == '3.9.*'", specifier = "==1.0.0" }]
         "#
         );
     });
@@ -4735,8 +4738,8 @@ fn prerelease_base_marker_stable_preference_explicit_first() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "c", marker = "sys_platform != 'linux'", specifier = ">=1" },
-            { name = "c", marker = "sys_platform == 'linux'", specifier = ">=0.5a1,>=1" },
+            { name = "c", specifier = ">=1.0" },
+            { name = "c", marker = "sys_platform == 'linux'", specifier = ">=0.5a1" },
         ]
         "#
         );
@@ -4838,8 +4841,8 @@ fn prerelease_base_marker_stable_preference_plain_first() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "c", marker = "sys_platform != 'linux'", specifier = ">=1" },
-            { name = "c", marker = "sys_platform == 'linux'", specifier = ">=0.5a1,>=1" },
+            { name = "c", specifier = ">=1.0" },
+            { name = "c", marker = "sys_platform == 'linux'", specifier = ">=0.5a1" },
         ]
         "#
         );
@@ -4936,7 +4939,10 @@ fn prerelease_marker_equivalent_stable_preference() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "c", marker = "sys_platform == 'linux'", specifier = ">=0.5a1,>=1" }]
+        requires-dist = [
+            { name = "c", marker = "sys_platform == 'linux'", specifier = ">=0.5a1" },
+            { name = "c", marker = "sys_platform == 'linux'", specifier = ">=1.0" },
+        ]
         "#
         );
     });
@@ -5072,7 +5078,7 @@ fn prerelease_marker_stable_preference_backtracks() -> Result<()> {
         [package.metadata]
         requires-dist = [
             { name = "a" },
-            { name = "d", specifier = "==1" },
+            { name = "d", specifier = "==1.0.0" },
         ]
         "#
         );
@@ -5291,7 +5297,7 @@ fn requires_python_wheels() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "a", specifier = "==1" }]
+        requires-dist = [{ name = "a", specifier = "==1.0.0" }]
         "#
         );
     });
@@ -5383,7 +5389,7 @@ fn unreachable_package() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "a", marker = "sys_platform == 'win32'", specifier = "==1" }]
+        requires-dist = [{ name = "a", marker = "sys_platform == 'win32'", specifier = "==1.0.0" }]
         "#
         );
     });
@@ -5503,9 +5509,9 @@ fn unreachable_wheels() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "a", marker = "sys_platform == 'win32'", specifier = "==1" },
-            { name = "b", marker = "sys_platform == 'linux'", specifier = "==1" },
-            { name = "c", marker = "sys_platform == 'darwin'", specifier = "==1" },
+            { name = "a", marker = "sys_platform == 'win32'", specifier = "==1.0.0" },
+            { name = "b", marker = "sys_platform == 'linux'", specifier = "==1.0.0" },
+            { name = "c", marker = "sys_platform == 'darwin'", specifier = "==1.0.0" },
         ]
         "#
         );

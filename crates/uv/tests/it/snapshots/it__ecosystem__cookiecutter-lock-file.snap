@@ -404,11 +404,11 @@ test = [
 requires-dist = [
     { name = "arrow" },
     { name = "binaryornot", specifier = ">=0.4.4" },
-    { name = "click", specifier = ">=7,<9" },
-    { name = "jinja2", specifier = ">=2.7,<4" },
-    { name = "python-slugify", specifier = ">=4" },
+    { name = "click", specifier = ">=7.0,<9.0.0" },
+    { name = "jinja2", specifier = ">=2.7,<4.0.0" },
+    { name = "python-slugify", specifier = ">=4.0.0" },
     { name = "pyyaml", specifier = ">=5.3.1" },
-    { name = "requests", specifier = ">=2.23" },
+    { name = "requests", specifier = ">=2.23.0" },
     { name = "rich" },
 ]
 

@@ -1,4 +1,7 @@
+use std::collections::BTreeSet;
 use std::path::Path;
+
+use itertools::Either;
 
 use uv_configuration::{
     NormalizedBuildConstraints, NormalizedConstraints, NormalizedOverrideEntries,
@@ -11,6 +14,7 @@ use uv_distribution_types::{
 use uv_fs::normalize_path;
 use uv_git_types::GitUrl;
 use uv_pep508::VerbatimUrl;
+use uv_preview::PreviewFeature;
 use uv_pypi_types::{ParsedArchiveUrl, ParsedGitDirectoryUrl, ParsedGitPathUrl};
 use uv_redacted::DisplaySafeUrl;
 
@@ -74,7 +78,7 @@ impl<'a> RequirementNormalizer<'a> {
         &self,
         constraints: impl IntoIterator<Item = NameRequirementSpecification>,
     ) -> Result<NormalizedBuildConstraints, LockError> {
-        constraints
+        let mut constraints = constraints
             .into_iter()
             .map(|constraint| {
                 Ok(NameRequirementSpecification {
@@ -86,8 +90,13 @@ impl<'a> RequirementNormalizer<'a> {
                     hashes: constraint.hashes,
                 })
             })
-            .collect::<Result<Vec<_>, LockError>>()
-            .map(NormalizedBuildConstraints::from)
+            .collect::<Result<Vec<_>, LockError>>()?;
+        // Non-preview lockfiles serialize build constraints in sorted order.
+        if !uv_preview::is_enabled(PreviewFeature::LockfileNormalization) {
+            constraints.sort();
+            constraints.dedup();
+        }
+        Ok(NormalizedBuildConstraints::from(constraints))
     }
 
     fn declarations(
@@ -98,6 +107,18 @@ impl<'a> RequirementNormalizer<'a> {
             .into_iter()
             .map(|requirement| normalize_requirement(requirement, self.root, self.requires_python))
             .collect()
+    }
+}
+
+/// Prepare declarations for serialization, combining equivalent declarations in preview mode.
+pub(super) fn normalize_collection<T: Ord, N: From<Vec<T>>>(
+    declarations: impl IntoIterator<Item = T>,
+    normalize: bool,
+) -> Either<BTreeSet<T>, N> {
+    if normalize {
+        Either::Right(N::from(declarations.into_iter().collect()))
+    } else {
+        Either::Left(declarations.into_iter().collect())
     }
 }
 

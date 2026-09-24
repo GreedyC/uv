@@ -118,7 +118,7 @@ fn add_registry() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", specifier = "==3.7" }]
+        requires-dist = [{ name = "anyio", specifier = "==3.7.0" }]
 
         [[package]]
         name = "sniffio"
@@ -259,7 +259,7 @@ fn add_git() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "anyio", specifier = "==3.7" },
+            { name = "anyio", specifier = "==3.7.0" },
             { name = "uv-public-pypackage", git = "https://github.com/astral-test/uv-public-pypackage?tag=0.0.1" },
         ]
 
@@ -954,7 +954,7 @@ fn add_git_raw() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "anyio", specifier = "==3.7" },
+            { name = "anyio", specifier = "==3.7.0" },
             { name = "uv-public-pypackage", git = "https://github.com/astral-test/uv-public-pypackage?rev=0.0.1" },
         ]
 
@@ -1313,7 +1313,7 @@ fn add_remove_dev() -> Result<()> {
         [package.metadata]
 
         [package.metadata.requires-dev]
-        dev = [{ name = "anyio", specifier = "==3.7" }]
+        dev = [{ name = "anyio", specifier = "==3.7.0" }]
 
         [[package]]
         name = "sniffio"
@@ -1504,7 +1504,7 @@ fn add_remove_optional() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", marker = "extra == 'io'", specifier = "==3.7" }]
+        requires-dist = [{ name = "anyio", marker = "extra == 'io'", specifier = "==3.7.0" }]
         provides-extras = ["io"]
 
         [[package]]
@@ -3417,8 +3417,8 @@ fn update() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "requests", extras = ["security"], marker = "python_full_version < '3.8'", git = "https://github.com/psf/requests?tag=v2.32.3" },
-            { name = "requests", extras = ["security", "socks", "use-chardet-on-py3"], marker = "python_full_version >= '3.8'", git = "https://github.com/psf/requests?tag=v2.32.3" },
+            { name = "requests", extras = ["security"], git = "https://github.com/psf/requests?tag=v2.32.3" },
+            { name = "requests", extras = ["socks", "use-chardet-on-py3"], marker = "python_full_version >= '3.8'", git = "https://github.com/psf/requests?tag=v2.32.3" },
         ]
 
         [[package]]
@@ -4079,7 +4079,7 @@ fn add_inexact() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0" }]
         "#
         );
     });
@@ -4947,7 +4947,7 @@ fn add_lower_bound_optional() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "anyio", marker = "extra == 'io'", specifier = ">=4.3" }]
+        requires-dist = [{ name = "anyio", marker = "extra == 'io'", specifier = ">=4.3.0" }]
         provides-extras = ["io"]
 
         [[package]]
@@ -5121,7 +5121,7 @@ fn add_non_project() -> Result<()> {
         [manifest]
 
         [manifest.dependency-groups]
-        dev = [{ name = "iniconfig", specifier = ">=2" }]
+        dev = [{ name = "iniconfig", specifier = ">=2.0.0" }]
 
         [[package]]
         name = "iniconfig"
@@ -7824,7 +7824,7 @@ fn add_remove_script_lock() -> Result<()> {
 
         [manifest]
         requirements = [
-            { name = "anyio", specifier = ">=4.3" },
+            { name = "anyio", specifier = ">=4.3.0" },
             { name = "requests", specifier = "<3" },
             { name = "rich" },
         ]
@@ -9957,7 +9957,7 @@ fn add_no_warn_index_url() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = ">=2" }]
+        requires-dist = [{ name = "iniconfig", specifier = ">=2.0.0" }]
         "#
         );
     });
@@ -10050,7 +10050,7 @@ fn add_index() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0" }]
         "#
         );
     });
@@ -10160,7 +10160,7 @@ fn add_index() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "iniconfig", specifier = "==2" },
+            { name = "iniconfig", specifier = "==2.0.0" },
             { name = "jinja2", specifier = ">=3.1.4", index = "https://astral-sh.github.io/pytorch-mirror/whl/cu121" },
         ]
         "#
@@ -10274,7 +10274,7 @@ fn add_index() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "iniconfig", specifier = "==2" },
+            { name = "iniconfig", specifier = "==2.0.0" },
             { name = "jinja2", specifier = ">=3.1.4", index = "https://test.pypi.org/simple" },
         ]
         "#
@@ -10392,7 +10392,7 @@ fn add_index() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "iniconfig", specifier = "==2" },
+            { name = "iniconfig", specifier = "==2.0.0" },
             { name = "jinja2", specifier = ">=3.1.4", index = "https://test.pypi.org/simple" },
             { name = "typing-extensions", specifier = ">=4.12.2" },
         ]
@@ -10518,7 +10518,7 @@ fn add_index() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "iniconfig", specifier = "==2" },
+            { name = "iniconfig", specifier = "==2.0.0" },
             { name = "jinja2", specifier = ">=3.1.4", index = "https://test.pypi.org/simple" },
             { name = "typing-extensions", specifier = ">=4.12.2" },
         ]
@@ -10615,7 +10615,7 @@ fn add_default_index_url() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = ">=2" }]
+        requires-dist = [{ name = "iniconfig", specifier = ">=2.0.0" }]
         "#
         );
     });
@@ -10687,8 +10687,8 @@ fn add_default_index_url() -> Result<()> {
 
         [package.metadata]
         requires-dist = [
-            { name = "iniconfig", specifier = ">=2" },
-            { name = "typing-extensions", specifier = ">=4.10" },
+            { name = "iniconfig", specifier = ">=2.0.0" },
+            { name = "typing-extensions", specifier = ">=4.10.0" },
         ]
 
         [[package]]
@@ -10784,7 +10784,7 @@ async fn add_index_credentials() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0" }]
         "#
         );
     });
@@ -10881,7 +10881,7 @@ async fn existing_index_credentials() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0" }]
         "#
         );
     });
@@ -10974,7 +10974,7 @@ fn add_index_with_trailing_slash() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0" }]
         "#
         );
     });
@@ -11067,7 +11067,7 @@ fn add_index_without_trailing_slash() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0" }]
         "#
         );
     });
@@ -11720,7 +11720,7 @@ fn add_index_comments() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = "==2" }]
+        requires-dist = [{ name = "iniconfig", specifier = "==2.0.0" }]
         "#
         );
     });
@@ -13014,7 +13014,7 @@ fn repeated_index_cli_environment_variable() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = ">=2" }]
+        requires-dist = [{ name = "iniconfig", specifier = ">=2.0.0" }]
         "#
         );
     });
@@ -13114,7 +13114,7 @@ fn repeated_index_cli_environment_variable_newline() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = ">=2" }]
+        requires-dist = [{ name = "iniconfig", specifier = ">=2.0.0" }]
         "#
         );
     });
@@ -13218,7 +13218,7 @@ fn repeated_index_cli() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = ">=2" }]
+        requires-dist = [{ name = "iniconfig", specifier = ">=2.0.0" }]
         "#
         );
     });
@@ -13322,7 +13322,7 @@ fn repeated_index_cli_reversed() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = ">=2" }]
+        requires-dist = [{ name = "iniconfig", specifier = ">=2.0.0" }]
         "#
         );
     });
@@ -15408,7 +15408,7 @@ fn add_no_install_project() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "iniconfig", specifier = ">=2" }]
+        requires-dist = [{ name = "iniconfig", specifier = ">=2.0.0" }]
         "#
         );
     });

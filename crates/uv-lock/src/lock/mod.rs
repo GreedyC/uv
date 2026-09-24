@@ -78,7 +78,7 @@ pub use crate::lock::installable::{Installable, InstallableRootKind};
 pub use crate::lock::map::PackageMap;
 pub use crate::lock::tree::{TreeDisplay, TreeJsonTarget};
 
-use self::requirements::{RequirementNormalizer, normalize_requirement};
+use self::requirements::{RequirementNormalizer, normalize_collection, normalize_requirement};
 
 mod deserialize;
 pub(crate) mod export;
@@ -2619,12 +2619,20 @@ impl Lock {
         mut packages: Vec<Package>,
         requires_python: RequiresPython,
         options: ResolverOptions,
-        manifest: ResolverManifest,
+        mut manifest: ResolverManifest,
         conflicts: Conflicts,
         supported_environments: Vec<MarkerTree>,
         required_environments: Vec<MarkerTree>,
         fork_markers: Vec<UniversalMarker>,
     ) -> Result<Self, LockError> {
+        // Stable lockfiles sort build constraints; preview mode retains hash precedence.
+        if !manifest.build_constraints.is_empty()
+            && !uv_preview::is_enabled(PreviewFeature::LockfileNormalization)
+        {
+            manifest.build_constraints.sort();
+            manifest.build_constraints.dedup();
+        }
+
         // Put all dependencies for each package in a canonical order and
         // check for duplicates.
         for package in &mut packages {
@@ -5998,7 +6006,8 @@ pub struct ResolverManifest {
     /// The excludes provided to the resolver.
     #[serde(default)]
     excludes: BTreeSet<ExcludeDependency>,
-    /// The build constraints in declaration order, which determines hash precedence.
+    /// The build constraints. The lockfile normalization preview retains declaration order to
+    /// preserve hash precedence.
     #[serde(default)]
     build_constraints: Vec<NameRequirementSpecification>,
     /// The static metadata provided to the resolver.
@@ -6019,37 +6028,36 @@ impl ResolverManifest {
         dependency_groups: impl IntoIterator<Item = (GroupName, Vec<Requirement>)>,
         dependency_metadata: impl IntoIterator<Item = StaticMetadata>,
     ) -> Self {
+        let normalize = uv_preview::is_enabled(PreviewFeature::LockfileNormalization);
         Self {
             members: members.into_iter().collect(),
-            requirements: NormalizedRequirements::from(
-                requirements.into_iter().collect::<Vec<_>>(),
-            )
-            .into_inner()
-            .into_iter()
-            .collect(),
-            constraints: NormalizedConstraints::from(constraints.into_iter().collect::<Vec<_>>())
-                .into_inner()
+            requirements: normalize_collection(requirements, normalize)
+                .map_right(NormalizedRequirements::into_inner)
                 .into_iter()
                 .collect(),
-            overrides: NormalizedOverrideEntries::from(overrides.into_iter().collect::<Vec<_>>())
-                .into_inner()
+            constraints: normalize_collection(constraints, normalize)
+                .map_right(NormalizedConstraints::into_inner)
                 .into_iter()
                 .collect(),
-            excludes: NormalizedExcludes::from(excludes.into_iter().collect::<Vec<_>>())
-                .into_inner()
+            overrides: normalize_collection(overrides, normalize)
+                .map_right(NormalizedOverrideEntries::into_inner)
                 .into_iter()
                 .collect(),
-            build_constraints: NormalizedBuildConstraints::from(
-                build_constraints.into_iter().collect::<Vec<_>>(),
-            )
-            .into_inner(),
+            excludes: normalize_collection(excludes, normalize)
+                .map_right(NormalizedExcludes::into_inner)
+                .into_iter()
+                .collect(),
+            build_constraints: normalize_collection(build_constraints, normalize)
+                .map_right(NormalizedBuildConstraints::into_inner)
+                .into_iter()
+                .collect(),
             dependency_groups: dependency_groups
                 .into_iter()
                 .map(|(group, requirements)| {
                     (
                         group,
-                        NormalizedRequirements::from(requirements)
-                            .into_inner()
+                        normalize_collection(requirements, normalize)
+                            .map_right(NormalizedRequirements::into_inner)
                             .into_iter()
                             .collect(),
                     )
@@ -7070,15 +7078,16 @@ struct PackageMetadata {
 
 impl PackageMetadata {
     fn from_distribution(metadata: &DistributionMetadata, root: &Path) -> Result<Self, LockError> {
+        let normalize = uv_preview::is_enabled(PreviewFeature::LockfileNormalization);
         let requires_dist = metadata
             .requires_dist
             .iter()
             .cloned()
             .map(|requirement| requirement.relative_to(root))
             .collect::<Result<Vec<_>, _>>()
-            .map(NormalizedRequirements::from)
+            .map(|requirements| normalize_collection(requirements, normalize))
             .map_err(LockErrorKind::RequirementRelativePath)?
-            .into_inner()
+            .map_right(NormalizedRequirements::into_inner)
             .into_iter()
             .collect();
         let dependency_groups = metadata
@@ -7090,9 +7099,9 @@ impl PackageMetadata {
                     .cloned()
                     .map(|requirement| requirement.relative_to(root))
                     .collect::<Result<Vec<_>, _>>()
-                    .map(NormalizedRequirements::from)
+                    .map(|requirements| normalize_collection(requirements, normalize))
                     .map_err(LockErrorKind::RequirementRelativePath)?
-                    .into_inner()
+                    .map_right(NormalizedRequirements::into_inner)
                     .into_iter()
                     .collect();
                 Ok::<_, LockError>((group.clone(), requirements))

@@ -1340,7 +1340,7 @@ fn check_no_sync_creates_lock_without_sync() -> Result<()> {
         ]
 
         [package.metadata]
-        requires-dist = [{ name = "a", specifier = "==1" }]
+        requires-dist = [{ name = "a", specifier = "==1.0.0" }]
         "#);
     });
     assert!(!context.site_packages().join("a").exists());
@@ -1522,8 +1522,8 @@ fn check_no_sync_updates_stale_lock_without_sync() -> Result<()> {
          ]
 
          [package.metadata]
-        -requires-dist = [{ name = "a", specifier = "==1" }]
-        +requires-dist = [{ name = "a", specifier = "==2" }]
+        -requires-dist = [{ name = "a", specifier = "==1.0.0" }]
+        +requires-dist = [{ name = "a", specifier = "==2.0.0" }]
         "#);
     });
     assert!(!context.site_packages().join("a").exists());

@@ -2086,13 +2086,13 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "greenlet", specifier = "==3.4" },
+    { name = "greenlet", specifier = "==3.4.0" },
     { name = "pyx-member-06", editable = "members/pyx-member-06" },
     { name = "pyx-member-23", editable = "members/pyx-member-23" },
     { name = "pyx-member-29", editable = "members/pyx-member-29" },
-    { name = "sentry-sdk", extras = ["sqlalchemy"], specifier = "==2.57" },
+    { name = "sentry-sdk", extras = ["sqlalchemy"], specifier = "==2.57.0" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
-    { name = "stripe", specifier = "==14.5a1" },
+    { name = "stripe", specifier = "==14.5.0a1" },
 ]
 
 [package.metadata.requires-dev]
@@ -2102,7 +2102,7 @@ dev = [
     { name = "dirty-equals", specifier = "==0.11" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "python-dotenv", specifier = "==1.2.2" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
@@ -2143,7 +2143,7 @@ requires-dist = [
     { name = "pyx-member-23", editable = "members/pyx-member-23" },
     { name = "pyx-member-24", editable = "members/pyx-member-24" },
     { name = "pyx-member-29", editable = "members/pyx-member-29" },
-    { name = "sentry-sdk", specifier = "==2.57" },
+    { name = "sentry-sdk", specifier = "==2.57.0" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
     { name = "tsayt", specifier = "==0.1.1" },
 ]
@@ -2351,17 +2351,17 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiofiles", specifier = "==25.1" },
+    { name = "aiofiles", specifier = "==25.1.0" },
     { name = "aiohttp", specifier = "==3.14.[X]" },
     { name = "beautifulsoup4", specifier = "==4.14.3" },
     { name = "boto3", specifier = "==1.42.88" },
     { name = "cvss", specifier = "==3.6" },
     { name = "defusedxml", specifier = "==0.7.1" },
-    { name = "greenlet", specifier = "==3.4" },
+    { name = "greenlet", specifier = "==3.4.0" },
     { name = "modal", marker = "extra == 'modal'", specifier = "==1.4.1" },
     { name = "msgspec", specifier = "==0.21.1" },
-    { name = "packaging", specifier = "==26" },
-    { name = "packaging-legacy", specifier = "==23.post0" },
+    { name = "packaging", specifier = "==26.0" },
+    { name = "packaging-legacy", specifier = "==23.0.post0" },
     { name = "pip", marker = "extra == 'modal'", specifier = "==26.1" },
     { name = "polars", specifier = "==1.39.3" },
     { name = "pyx-member-06", editable = "members/pyx-member-06" },
@@ -2375,17 +2375,17 @@ requires-dist = [
     { name = "pyx-member-31", editable = "members/pyx-member-31" },
     { name = "pyx-member-32", editable = "members/pyx-member-32" },
     { name = "pyx-member-37", editable = "members/pyx-member-37" },
-    { name = "redis", specifier = "==7.4" },
+    { name = "redis", specifier = "==7.4.0" },
     { name = "remotezip", specifier = "==0.12.3" },
-    { name = "rfc3986", specifier = "==2" },
-    { name = "sentry-sdk", extras = ["sqlalchemy"], specifier = "==2.57" },
+    { name = "rfc3986", specifier = "==2.0.0" },
+    { name = "sentry-sdk", extras = ["sqlalchemy"], specifier = "==2.57.0" },
     { name = "setuptools", marker = "extra == 'modal'", specifier = "==82.0.1" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
-    { name = "stamina", specifier = "==25.2" },
+    { name = "stamina", specifier = "==25.2.0" },
     { name = "tqdm", specifier = "==4.67.3" },
     { name = "trove-classifiers", specifier = "==2026.1.14.14" },
     { name = "types-boto3-sqs" },
-    { name = "workos", specifier = "==5.46" },
+    { name = "workos", specifier = "==5.46.0" },
 ]
 provides-extras = ["modal"]
 
@@ -2398,8 +2398,8 @@ dev = [
     { name = "freezegun", specifier = "==1.5.5" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
-    { name = "pytest-cov", specifier = "==7.1" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
+    { name = "pytest-cov", specifier = "==7.1.0" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
     { name = "ty", specifier = "==0.0.51" },
@@ -2430,15 +2430,15 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "deptry", specifier = "==0.25.1" },
-    { name = "packaging", specifier = "==26" },
+    { name = "packaging", specifier = "==26.0" },
     { name = "pytest", specifier = "==9.0.3" },
     { name = "pyx-member-29", editable = "members/pyx-member-29" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
-    { name = "rfc3986", specifier = "==2" },
+    { name = "rfc3986", specifier = "==2.0.0" },
     { name = "ruff", specifier = "==0.15.18" },
-    { name = "sentry-sdk", specifier = "==2.57" },
+    { name = "sentry-sdk", specifier = "==2.57.0" },
     { name = "ty", specifier = "==0.0.51" },
-    { name = "urllib3", specifier = "==2.7" },
+    { name = "urllib3", specifier = "==2.7.0" },
 ]
 
 [[package]]
@@ -2475,7 +2475,7 @@ requires-dist = [
     { name = "msgspec", specifier = "==0.21.1" },
     { name = "pyx-member-04", editable = "members/pyx-member-04" },
     { name = "pyx-member-23", editable = "members/pyx-member-23" },
-    { name = "redis", specifier = "==7.4" },
+    { name = "redis", specifier = "==7.4.0" },
 ]
 provides-extras = ["aws"]
 
@@ -2484,7 +2484,7 @@ dev = [
     { name = "deptry", specifier = "==0.25.1" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pytest-randomly", specifier = "==4.0.1" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
@@ -2515,7 +2515,7 @@ dev = [
     { name = "deptry", specifier = "==0.25.1" },
     { name = "ruff", specifier = "==0.15.18" },
     { name = "ty", specifier = "==0.0.51" },
-    { name = "urllib3", specifier = "==2.7" },
+    { name = "urllib3", specifier = "==2.7.0" },
 ]
 
 [[package]]
@@ -2550,7 +2550,7 @@ requires-dist = [
     { name = "boto3", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "botocore", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "linehaul", specifier = "==1.0.3" },
-    { name = "packaging", specifier = "==26" },
+    { name = "packaging", specifier = "==26.0" },
     { name = "pyx-member-22", editable = "members/pyx-member-22" },
     { name = "types-boto3", extras = ["s3"], specifier = "==1.42.88" },
 ]
@@ -2639,7 +2639,7 @@ dev = [
 requires-dist = [
     { name = "boto3", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "botocore", marker = "extra == 'aws'", specifier = "==1.42.88" },
-    { name = "py-rattler", specifier = "==0.24" },
+    { name = "py-rattler", specifier = "==0.24.0" },
     { name = "pyx-member-03", editable = "members/pyx-member-03" },
     { name = "pyx-member-06", editable = "members/pyx-member-06" },
     { name = "pyx-member-22", editable = "members/pyx-member-22" },
@@ -2691,14 +2691,14 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiofiles", specifier = "==25.1" },
+    { name = "aiofiles", specifier = "==25.1.0" },
     { name = "boto3", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "pyx-member-06", editable = "members/pyx-member-06" },
     { name = "pyx-member-22", editable = "members/pyx-member-22" },
     { name = "pyx-member-23", editable = "members/pyx-member-23" },
     { name = "pyx-member-28", editable = "members/pyx-member-28" },
     { name = "pyx-member-32", editable = "members/pyx-member-32" },
-    { name = "sentry-sdk", specifier = "==2.57" },
+    { name = "sentry-sdk", specifier = "==2.57.0" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
     { name = "types-boto3", extras = ["s3"], specifier = "==1.42.88" },
 ]
@@ -2709,7 +2709,7 @@ dev = [
     { name = "deptry", specifier = "==0.25.1" },
     { name = "moto", extras = ["s3", "secretsmanager"], specifier = "==5.1.22" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
     { name = "ty", specifier = "==0.0.51" },
@@ -2742,7 +2742,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aws-lambda-powertools", specifier = "==3.27" },
+    { name = "aws-lambda-powertools", specifier = "==3.27.0" },
     { name = "boto3", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "botocore", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "botocore", extras = ["crt"], specifier = "==1.42.88" },
@@ -2804,7 +2804,7 @@ dev = [
     { name = "deptry", specifier = "==0.25.1" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
     { name = "ty", specifier = "==0.0.51" },
@@ -2856,7 +2856,7 @@ dev = [
     { name = "deptry", specifier = "==0.25.1" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
     { name = "ty", specifier = "==0.0.51" },
@@ -2994,7 +2994,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aws-lambda-powertools", specifier = "==3.27" },
+    { name = "aws-lambda-powertools", specifier = "==3.27.0" },
     { name = "boto3", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "botocore", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "msgspec", specifier = "==0.21.1" },
@@ -3012,7 +3012,7 @@ dev = [
     { name = "deptry", specifier = "==0.25.1" },
     { name = "moto", extras = ["sqs"], specifier = "==5.1.22" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
     { name = "ty", specifier = "==0.0.51" },
@@ -3049,7 +3049,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aws-lambda-powertools", specifier = "==3.27" },
+    { name = "aws-lambda-powertools", specifier = "==3.27.0" },
     { name = "boto3", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "botocore", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "pyx-member-22", editable = "members/pyx-member-22" },
@@ -3093,11 +3093,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aws-lambda-powertools", specifier = "==3.27" },
-    { name = "awslambdaric", specifier = "==4" },
+    { name = "aws-lambda-powertools", specifier = "==3.27.0" },
+    { name = "awslambdaric", specifier = "==4.0.0" },
     { name = "boto3", specifier = "==1.42.88" },
     { name = "pyx-member-29", editable = "members/pyx-member-29" },
-    { name = "sentry-sdk", specifier = "==2.57" },
+    { name = "sentry-sdk", specifier = "==2.57.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3136,9 +3136,9 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "msgspec", specifier = "==0.21.1" },
-    { name = "nanoid", specifier = "==2" },
-    { name = "packaging", specifier = "==26" },
-    { name = "packaging-legacy", specifier = "==23.post0" },
+    { name = "nanoid", specifier = "==2.0.0" },
+    { name = "packaging", specifier = "==26.0" },
+    { name = "packaging-legacy", specifier = "==23.0.post0" },
     { name = "pyx-member-04", editable = "members/pyx-member-04" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
 ]
@@ -3201,11 +3201,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiofiles", specifier = "==25.1" },
+    { name = "aiofiles", specifier = "==25.1.0" },
     { name = "aiohttp", specifier = "==3.14.[X]" },
     { name = "boto3", marker = "extra == 'aws'", specifier = "==1.42.88" },
     { name = "msgspec", specifier = "==0.21.1" },
-    { name = "packaging", specifier = "==26" },
+    { name = "packaging", specifier = "==26.0" },
     { name = "pyx-member-05", editable = "members/pyx-member-05" },
     { name = "pyx-member-06", editable = "members/pyx-member-06" },
     { name = "pyx-member-09", editable = "members/pyx-member-09" },
@@ -3215,9 +3215,9 @@ requires-dist = [
     { name = "pyx-member-28", extras = ["aws"], marker = "extra == 'aws'", editable = "members/pyx-member-28" },
     { name = "pyx-member-32", editable = "members/pyx-member-32" },
     { name = "pyx-member-37", editable = "members/pyx-member-37" },
-    { name = "sentry-sdk", specifier = "==2.57" },
+    { name = "sentry-sdk", specifier = "==2.57.0" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
-    { name = "stamina", specifier = "==25.2" },
+    { name = "stamina", specifier = "==25.2.0" },
 ]
 provides-extras = ["aws"]
 
@@ -3230,7 +3230,7 @@ dev = [
     { name = "freezegun", specifier = "==1.5.5" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "python-dotenv", specifier = "==1.2.2" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
@@ -3261,9 +3261,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "anyio", specifier = "==4.13" },
-    { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.41" },
-    { name = "opentelemetry-sdk", specifier = "==1.41" },
+    { name = "anyio", specifier = "==4.13.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.41.0" },
+    { name = "opentelemetry-sdk", specifier = "==1.41.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3340,8 +3340,8 @@ requires-dist = [
     { name = "boto3", specifier = "==1.42.88" },
     { name = "botocore", specifier = "==1.42.88" },
     { name = "cryptography", specifier = "==48.0.1" },
-    { name = "greenlet", specifier = "==3.4" },
-    { name = "packaging-legacy", specifier = "==23.post0" },
+    { name = "greenlet", specifier = "==3.4.0" },
+    { name = "packaging-legacy", specifier = "==23.0.post0" },
     { name = "pyx-member-06", editable = "members/pyx-member-06" },
     { name = "pyx-member-23", editable = "members/pyx-member-23" },
     { name = "pyx-member-24", extras = ["aws"], editable = "members/pyx-member-24" },
@@ -3349,11 +3349,11 @@ requires-dist = [
     { name = "pyx-member-32", editable = "members/pyx-member-32" },
     { name = "rich", specifier = "==14.3.2" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
-    { name = "stripe", specifier = "==14.5a1" },
+    { name = "stripe", specifier = "==14.5.0a1" },
     { name = "tqdm", specifier = "==4.67.3" },
     { name = "trove-classifiers", specifier = "==2026.1.14.14" },
     { name = "types-boto3", extras = ["s3"], specifier = "==1.42.88" },
-    { name = "workos", specifier = "==5.46" },
+    { name = "workos", specifier = "==5.46.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3417,7 +3417,7 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "sentry-sdk", specifier = "==2.57" }]
+requires-dist = [{ name = "sentry-sdk", specifier = "==2.57.0" }]
 
 [package.metadata.requires-dev]
 dev = [
@@ -3504,29 +3504,29 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "abi3audit", specifier = "==0.0.26" },
-    { name = "aiofiles", specifier = "==25.1" },
+    { name = "aiofiles", specifier = "==25.1.0" },
     { name = "aiohttp", specifier = "==3.14.[X]" },
-    { name = "annotated-types", specifier = "==0.7" },
+    { name = "annotated-types", specifier = "==0.7.0" },
     { name = "asgi-correlation-id", specifier = "==4.3.4" },
-    { name = "auditwheel", specifier = "==6.6" },
+    { name = "auditwheel", specifier = "==6.6.0" },
     { name = "boto3", extras = ["crt"], specifier = "==1.42.88" },
-    { name = "brotli-asgi", specifier = "==1.6" },
-    { name = "chevron-blue", specifier = "==0.3" },
+    { name = "brotli-asgi", specifier = "==1.6.0" },
+    { name = "chevron-blue", specifier = "==0.3.0" },
     { name = "cryptography", specifier = "==48.0.1" },
     { name = "fastapi", specifier = "==0.135.3" },
-    { name = "greenlet", specifier = "==3.4" },
+    { name = "greenlet", specifier = "==3.4.0" },
     { name = "httpx", specifier = "==0.28.1" },
     { name = "msgspec", specifier = "==0.21.1" },
-    { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.41" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.41.0" },
     { name = "opentelemetry-instrumentation-fastapi", specifier = "==0.62b0" },
-    { name = "opentelemetry-sdk", specifier = "==1.41" },
-    { name = "packaging", specifier = "==26" },
-    { name = "packaging-legacy", specifier = "==23.post0" },
-    { name = "posthog", specifier = "==7.11" },
+    { name = "opentelemetry-sdk", specifier = "==1.41.0" },
+    { name = "packaging", specifier = "==26.0" },
+    { name = "packaging-legacy", specifier = "==23.0.post0" },
+    { name = "posthog", specifier = "==7.11.0" },
     { name = "pydantic", specifier = "==2.12.5" },
     { name = "pydantic-core", specifier = "==2.41.5" },
     { name = "pydantic-extra-types", specifier = "==2.11.1" },
-    { name = "pyjwt", specifier = "==2.13" },
+    { name = "pyjwt", specifier = "==2.13.0" },
     { name = "python-multipart", specifier = "==0.0.31" },
     { name = "pyx-member-03", editable = "members/pyx-member-03" },
     { name = "pyx-member-05", editable = "members/pyx-member-05" },
@@ -3542,18 +3542,18 @@ requires-dist = [
     { name = "pyx-member-32", editable = "members/pyx-member-32" },
     { name = "pyx-member-34", editable = "members/pyx-member-34" },
     { name = "pyx-member-35", editable = "members/pyx-member-35" },
-    { name = "rfc3986", specifier = "==2" },
-    { name = "sentry-sdk", extras = ["fastapi"], specifier = "==2.57" },
+    { name = "rfc3986", specifier = "==2.0.0" },
+    { name = "sentry-sdk", extras = ["fastapi"], specifier = "==2.57.0" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
-    { name = "stamina", specifier = "==25.2" },
+    { name = "stamina", specifier = "==25.2.0" },
     { name = "starlette", specifier = "==1.3.1" },
-    { name = "stripe", specifier = "==14.5a1" },
+    { name = "stripe", specifier = "==14.5.0a1" },
     { name = "trove-classifiers", specifier = "==2026.1.14.14" },
     { name = "types-boto3", extras = ["lambda"], specifier = "==1.42.88" },
-    { name = "uvicorn", extras = ["standard"], specifier = "==0.44" },
-    { name = "workos", specifier = "==5.46" },
-    { name = "xxhash", specifier = "==3.6" },
-    { name = "zstd-asgi", specifier = "==1" },
+    { name = "uvicorn", extras = ["standard"], specifier = "==0.44.0" },
+    { name = "workos", specifier = "==5.46.0" },
+    { name = "xxhash", specifier = "==3.6.0" },
+    { name = "zstd-asgi", specifier = "==1.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3565,7 +3565,7 @@ dev = [
     { name = "freezegun", specifier = "==1.5.5" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "respx", specifier = "==0.23.1" },
     { name = "ruff", specifier = "==0.15.18" },
@@ -3596,7 +3596,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "aiohttp", specifier = "==3.14.[X]" },
-    { name = "lxml", specifier = "==6.1" },
+    { name = "lxml", specifier = "==6.1.0" },
     { name = "msgspec", specifier = "==0.21.1" },
 ]
 
@@ -3697,20 +3697,20 @@ dev = [
 requires-dist = [
     { name = "aiohttp", specifier = "==3.14.[X]" },
     { name = "aioresponses", specifier = "==0.7.8" },
-    { name = "aws-lambda-powertools", specifier = "==3.27" },
+    { name = "aws-lambda-powertools", specifier = "==3.27.0" },
     { name = "boto3" },
     { name = "coverage", specifier = "==7.13.5" },
     { name = "dirty-equals", specifier = "==0.11" },
     { name = "httpx" },
     { name = "id", specifier = "==1.6.1" },
-    { name = "moto", extras = ["kms", "s3", "secretsmanager", "sqs"], specifier = "==5.1.22" },
-    { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.41" },
-    { name = "opentelemetry-sdk", specifier = "==1.41" },
-    { name = "packaging", specifier = "==26" },
+    { name = "moto", extras = ["kms", "s3", "sqs", "secretsmanager"], specifier = "==5.1.22" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = "==1.41.0" },
+    { name = "opentelemetry-sdk", specifier = "==1.41.0" },
+    { name = "packaging", specifier = "==26.0" },
     { name = "pydantic", specifier = "==2.12.5" },
-    { name = "pyjwt", specifier = "==2.13" },
+    { name = "pyjwt", specifier = "==2.13.0" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "python-dotenv", specifier = "==1.2.2" },
     { name = "pyx-member-03", editable = "members/pyx-member-03" },
     { name = "pyx-member-04", editable = "members/pyx-member-04" },
@@ -3720,15 +3720,15 @@ requires-dist = [
     { name = "pyx-member-23", editable = "members/pyx-member-23" },
     { name = "pyx-member-24", editable = "members/pyx-member-24" },
     { name = "pyx-member-30", editable = "members/pyx-member-30" },
-    { name = "sentry-sdk", specifier = "==2.57" },
+    { name = "sentry-sdk", specifier = "==2.57.0" },
     { name = "sqlalchemy" },
     { name = "trove-classifiers" },
     { name = "types-boto3-kms" },
     { name = "types-boto3-s3" },
     { name = "types-boto3-secretsmanager" },
     { name = "types-boto3-sqs" },
-    { name = "urllib3", specifier = "==2.7" },
-    { name = "workos", specifier = "==5.46" },
+    { name = "urllib3", specifier = "==2.7.0" },
+    { name = "workos", specifier = "==5.46.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3775,11 +3775,11 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "aiofiles", specifier = "==25.1" },
+    { name = "aiofiles", specifier = "==25.1.0" },
     { name = "boto3", specifier = "==1.42.88" },
     { name = "msgspec", specifier = "==0.21.1" },
-    { name = "packaging", specifier = "==26" },
-    { name = "packaging-legacy", specifier = "==23.post0" },
+    { name = "packaging", specifier = "==26.0" },
+    { name = "packaging-legacy", specifier = "==23.0.post0" },
     { name = "pyx-member-03", editable = "members/pyx-member-03" },
     { name = "pyx-member-06", editable = "members/pyx-member-06" },
     { name = "pyx-member-23", editable = "members/pyx-member-23" },
@@ -3788,7 +3788,7 @@ requires-dist = [
     { name = "pyx-member-26", editable = "members/pyx-member-26" },
     { name = "pyx-member-35", editable = "members/pyx-member-35" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
-    { name = "stdlib-list", specifier = "==0.12" },
+    { name = "stdlib-list", specifier = "==0.12.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3798,7 +3798,7 @@ dev = [
     { name = "dirty-equals", specifier = "==0.11" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "python-dotenv", specifier = "==1.2.2" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
@@ -3829,13 +3829,13 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "email-validator", specifier = "==2.3" },
+    { name = "email-validator", specifier = "==2.3.0" },
     { name = "msgspec", specifier = "==0.21.1" },
-    { name = "packaging", specifier = "==26" },
+    { name = "packaging", specifier = "==26.0" },
     { name = "pyx-member-23", editable = "members/pyx-member-23" },
-    { name = "rfc3986", specifier = "==2" },
+    { name = "rfc3986", specifier = "==2.0.0" },
     { name = "trove-classifiers", specifier = "==2026.1.14.14" },
-    { name = "urllib3", specifier = "==2.7" },
+    { name = "urllib3", specifier = "==2.7.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -3881,7 +3881,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "greenlet", specifier = "==3.4" },
+    { name = "greenlet", specifier = "==3.4.0" },
     { name = "msgspec", specifier = "==0.21.1" },
     { name = "pyx-member-06", editable = "members/pyx-member-06" },
     { name = "pyx-member-09", extras = ["aws"], editable = "members/pyx-member-09" },
@@ -3892,8 +3892,8 @@ requires-dist = [
     { name = "pyx-member-29", editable = "members/pyx-member-29" },
     { name = "pyx-member-32", extras = ["aws"], editable = "members/pyx-member-32" },
     { name = "pyx-member-37", editable = "members/pyx-member-37" },
-    { name = "redis", specifier = "==7.4" },
-    { name = "sentry-sdk", extras = ["sqlalchemy"], specifier = "==2.57" },
+    { name = "redis", specifier = "==7.4.0" },
+    { name = "sentry-sdk", extras = ["sqlalchemy"], specifier = "==2.57.0" },
     { name = "sqlalchemy", specifier = "==2.0.49" },
 ]
 
@@ -3904,7 +3904,7 @@ dev = [
     { name = "dirty-equals", specifier = "==0.11" },
     { name = "inline-snapshot", specifier = "==0.32.6" },
     { name = "pytest", specifier = "==9.0.3" },
-    { name = "pytest-asyncio", specifier = "==1.3" },
+    { name = "pytest-asyncio", specifier = "==1.3.0" },
     { name = "pyx-member-33", editable = "members/pyx-member-33" },
     { name = "ruff", specifier = "==0.15.18" },
     { name = "ty", specifier = "==0.0.51" },
@@ -3931,7 +3931,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "pyx-member-29", editable = "members/pyx-member-29" },
-    { name = "sentry-sdk", specifier = "==2.57" },
+    { name = "sentry-sdk", specifier = "==2.57.0" },
 ]
 
 [package.metadata.requires-dev]
